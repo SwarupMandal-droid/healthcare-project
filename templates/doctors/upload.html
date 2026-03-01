@@ -1,0 +1,303 @@
+{% extends 'doctors/base_doctor.html' %}
+{% load static %}
+
+{% block title %}Upload Documents — Doctor{% endblock %}
+{% block breadcrumb %}Upload Documents{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/doctor_dashboard.css' %}?v=1">
+{% endblock %}
+
+{% block dash_content %}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <h2 style="font-size:1.4rem">Upload Patient Documents</h2>
+</div>
+
+<div class="upload-layout">
+
+    <!-- Upload Panel -->
+    <div>
+        <!-- Patient Search -->
+        <div class="panel-card" style="margin-bottom:20px">
+            <div class="panel-header">
+                <h3><i class="fas fa-search"
+                       style="color:var(--primary);margin-right:8px"></i>Select Patient</h3>
+            </div>
+            <div class="panel-body">
+                <div class="input-icon-wrap" style="margin-bottom:16px">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="form-control"
+                           id="patientSearch"
+                           placeholder="Search patient by name or ID..."
+                           oninput="searchPatients(this.value)"
+                           style="padding-left:42px">
+                </div>
+
+                <!-- Patient Results -->
+                <div id="patientResults" style="display:none">
+                    <div class="patient-result-list">
+                        {% for i in "1234" %}
+                        <div class="patient-result-item"
+                             onclick="selectPatient('Patient {{ forloop.counter }}', {{ forloop.counter }})">
+                            <img src="https://i.pravatar.cc/36?img={{ forloop.counter|add:5 }}" alt="">
+                            <div>
+                                <p style="font-weight:600;font-size:0.88rem">
+                                    Patient {{ forloop.counter }}
+                                </p>
+                                <p style="font-size:0.75rem;color:var(--gray-400)">
+                                    ID: LC-P-00{{ forloop.counter }} &nbsp;|&nbsp;
+                                    Age: {{ forloop.counter|add:24 }}
+                                </p>
+                            </div>
+                            <i class="fas fa-chevron-right"
+                               style="color:var(--gray-400);margin-left:auto"></i>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Selected Patient Badge -->
+                <div id="selectedPatientBadge" style="display:none">
+                    <div class="selected-patient-card">
+                        <img src="https://i.pravatar.cc/44?img=5"
+                             id="selectedPatientImg" alt="">
+                        <div style="flex:1">
+                            <p style="font-weight:700" id="selectedPatientName">
+                                Patient Name
+                            </p>
+                            <p style="font-size:0.78rem;color:var(--gray-500)">
+                                Selected for upload
+                            </p>
+                        </div>
+                        <button class="btn btn-sm btn-outline"
+                                onclick="clearPatient()">
+                            <i class="fas fa-times"></i> Change
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Document Type -->
+        <div class="panel-card" style="margin-bottom:20px">
+            <div class="panel-header">
+                <h3><i class="fas fa-tag"
+                       style="color:var(--accent);margin-right:8px"></i>Document Type</h3>
+            </div>
+            <div class="panel-body">
+                <div class="doc-type-grid">
+                    <div class="doc-type-card active" onclick="selectDocType(this,'prescription')">
+                        <i class="fas fa-file-prescription"></i>
+                        <span>Prescription</span>
+                    </div>
+                    <div class="doc-type-card" onclick="selectDocType(this,'lab')">
+                        <i class="fas fa-flask"></i>
+                        <span>Lab Report</span>
+                    </div>
+                    <div class="doc-type-card" onclick="selectDocType(this,'diet')">
+                        <i class="fas fa-utensils"></i>
+                        <span>Diet Chart</span>
+                    </div>
+                    <div class="doc-type-card" onclick="selectDocType(this,'notes')">
+                        <i class="fas fa-notes-medical"></i>
+                        <span>Medical Notes</span>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:16px;margin-bottom:0">
+                    <label class="form-label">Additional Notes (Optional)</label>
+                    <textarea class="form-control" rows="2"
+                              placeholder="Any notes for the patient..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Area -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-cloud-upload-alt"
+                       style="color:var(--secondary);margin-right:8px"></i>Upload File</h3>
+            </div>
+            <div class="panel-body">
+                <div class="upload-zone" id="uploadZone"
+                     ondrop="handleDrop(event)"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-zone-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h4>Drag & Drop files here</h4>
+                    <p>or <span style="color:var(--primary);font-weight:600">
+                        click to browse</span></p>
+                    <p style="font-size:0.78rem;color:var(--gray-400);margin-top:8px">
+                        Supported: PDF, JPG, PNG, DOCX (Max 10MB)
+                    </p>
+                    <input type="file" id="fileInput" style="display:none"
+                           multiple accept=".pdf,.jpg,.jpeg,.png,.docx"
+                           onchange="handleFileSelect(event)">
+                </div>
+
+                <!-- File List -->
+                <div id="fileList" style="margin-top:16px"></div>
+
+                <button class="btn btn-primary w-full justify-center"
+                        style="margin-top:16px" id="uploadBtn"
+                        onclick="uploadFiles()">
+                    <i class="fas fa-upload"></i> Upload Documents
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Uploaded Documents Panel -->
+    <div class="panel-card" style="height:fit-content">
+        <div class="panel-header">
+            <h3><i class="fas fa-history"
+                   style="color:var(--gray-500);margin-right:8px"></i>Recently Uploaded</h3>
+            <select style="font-size:0.82rem;padding:4px 10px;border:1px solid var(--gray-200);
+                           border-radius:var(--radius);color:var(--gray-600)">
+                <option>All Patients</option>
+            </select>
+        </div>
+        <div class="panel-body" style="padding:0">
+
+            {% for i in "12345" %}
+            <div class="uploaded-doc-item">
+                <div class="uploaded-doc-icon
+                    {% if forloop.counter == 1 %}rx-icon
+                    {% elif forloop.counter == 2 %}lab-icon
+                    {% elif forloop.counter == 3 %}diet-icon
+                    {% else %}note-icon{% endif %}">
+                    <i class="fas
+                        {% if forloop.counter == 1 %}fa-file-prescription
+                        {% elif forloop.counter == 2 %}fa-flask
+                        {% elif forloop.counter == 3 %}fa-utensils
+                        {% else %}fa-notes-medical{% endif %}"></i>
+                </div>
+                <div class="uploaded-doc-info">
+                    <p class="uploaded-doc-name">
+                        {% if forloop.counter == 1 %}Prescription
+                        {% elif forloop.counter == 2 %}Lab Report
+                        {% elif forloop.counter == 3 %}Diet Chart
+                        {% else %}Medical Notes{% endif %}
+                    </p>
+                    <p class="uploaded-doc-meta">
+                        Patient {{ forloop.counter }} &nbsp;·&nbsp;
+                        Feb {{ forloop.counter|add:18 }}, 2025
+                    </p>
+                </div>
+                <div class="uploaded-doc-actions">
+                    <button class="btn-icon btn btn-outline btn-sm"
+                            title="Preview">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn-icon btn btn-outline btn-sm"
+                            style="color:var(--danger);border-color:var(--danger)"
+                            title="Delete">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+let selectedDocType = 'prescription';
+
+function selectDocType(el, type) {
+    document.querySelectorAll('.doc-type-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    selectedDocType = type;
+}
+
+function searchPatients(val) {
+    const results = document.getElementById('patientResults');
+    const badge   = document.getElementById('selectedPatientBadge');
+    if (val.length > 0 && badge.style.display === 'none') {
+        results.style.display = 'block';
+    } else {
+        results.style.display = 'none';
+    }
+}
+
+function selectPatient(name, id) {
+    document.getElementById('patientSearch').value = name;
+    document.getElementById('patientResults').style.display = 'none';
+    document.getElementById('selectedPatientName').textContent = name;
+    document.getElementById('selectedPatientBadge').style.display = 'block';
+    document.getElementById('selectedPatientImg').src =
+        `https://i.pravatar.cc/44?img=${id + 5}`;
+}
+
+function clearPatient() {
+    document.getElementById('patientSearch').value = '';
+    document.getElementById('selectedPatientBadge').style.display = 'none';
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.add('drag-over');
+}
+
+function handleDragLeave() {
+    document.getElementById('uploadZone').classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').classList.remove('drag-over');
+    renderFiles(e.dataTransfer.files);
+}
+
+function handleFileSelect(e) {
+    renderFiles(e.target.files);
+}
+
+function renderFiles(files) {
+    const list = document.getElementById('fileList');
+    list.innerHTML = '';
+    Array.from(files).forEach(file => {
+        const size = (file.size / 1024).toFixed(1);
+        const ext  = file.name.split('.').pop().toUpperCase();
+        list.innerHTML += `
+        <div class="file-item">
+            <div class="file-item-icon">${ext}</div>
+            <div class="file-item-info">
+                <p>${file.name}</p>
+                <span>${size} KB</span>
+            </div>
+            <button class="btn btn-sm btn-outline"
+                    style="color:var(--danger);border-color:var(--danger)"
+                    onclick="this.closest('.file-item').remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>`;
+    });
+}
+
+function uploadFiles() {
+    const btn = document.getElementById('uploadBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+    btn.disabled = true;
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-check"></i> Uploaded Successfully!';
+        btn.style.background = 'var(--secondary)';
+        document.getElementById('fileList').innerHTML = '';
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-upload"></i> Upload Documents';
+            btn.style.background = '';
+            btn.disabled = false;
+        }, 2500);
+    }, 1800);
+}
+</script>
+{% endblock %}

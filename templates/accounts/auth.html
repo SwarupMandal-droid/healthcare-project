@@ -1,0 +1,401 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login or Sign Up — Lifeline Care{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+
+<div class="auth-wrapper">
+
+    <!-- Left Panel -->
+    <div class="auth-left">
+        <div class="auth-left-inner">
+
+            <!-- Logo -->
+            <a href="{% url 'patients:home' %}" class="nav-logo">
+                <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+                <span>Lifeline <strong>Care</strong></span>
+            </a>
+
+            <!-- Dynamic content per step -->
+            <div class="left-content" id="leftContent">
+                <div class="left-step active" data-step="role">
+                    <h2>Welcome to<br><span class="text-gradient">Lifeline Care</span></h2>
+                    <p>Your trusted healthcare platform. Select your role to get started.</p>
+                    <div class="left-features">
+                        <div class="left-feature">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Secure & Private</span>
+                        </div>
+                        <div class="left-feature">
+                            <i class="fas fa-bolt"></i>
+                            <span>Instant Access</span>
+                        </div>
+                        <div class="left-feature">
+                            <i class="fas fa-star"></i>
+                            <span>Top Rated Doctors</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="left-step" data-step="patient">
+                    <div class="role-badge patient-badge">
+                        <i class="fas fa-user"></i> Patient
+                    </div>
+                    <h2>Your Health<br><span class="text-gradient">Journey Starts</span><br>Here</h2>
+                    <p>Book appointments, consult doctors, and manage your health records — all in one place.</p>
+                    <ul class="left-list">
+                        <li><i class="fas fa-check"></i> Find doctors by specialization</li>
+                        <li><i class="fas fa-check"></i> AI-powered health assistant</li>
+                        <li><i class="fas fa-check"></i> Secure digital prescriptions</li>
+                        <li><i class="fas fa-check"></i> Easy UPI & card payments</li>
+                    </ul>
+                </div>
+
+                <div class="left-step" data-step="doctor">
+                    <div class="role-badge doctor-badge">
+                        <i class="fas fa-stethoscope"></i> Doctor
+                    </div>
+                    <h2>Manage Your<br><span class="text-gradient">Practice</span><br>Smarter</h2>
+                    <p>Streamline appointments, upload patient documents, and grow your practice effortlessly.</p>
+                    <ul class="left-list">
+                        <li><i class="fas fa-check"></i> View & manage appointments</li>
+                        <li><i class="fas fa-check"></i> Upload prescriptions & reports</li>
+                        <li><i class="fas fa-check"></i> Patient document management</li>
+                        <li><i class="fas fa-check"></i> Professional verified profile</li>
+                    </ul>
+                </div>
+
+                <div class="left-step" data-step="admin">
+                    <div class="role-badge admin-badge">
+                        <i class="fas fa-shield-alt"></i> Admin
+                    </div>
+                    <h2>Platform<br><span class="text-gradient">Control</span><br>Center</h2>
+                    <p>Oversee all platform operations, manage users, and ensure quality healthcare delivery.</p>
+                    <ul class="left-list">
+                        <li><i class="fas fa-check"></i> Full platform oversight</li>
+                        <li><i class="fas fa-check"></i> User & doctor management</li>
+                        <li><i class="fas fa-check"></i> Analytics & reporting</li>
+                        <li><i class="fas fa-check"></i> Content moderation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Testimonial -->
+            <div class="left-testimonial">
+                <div class="lt-stars">★★★★★</div>
+                <p>"Lifeline Care transformed how I manage my health. Booking a doctor has never been easier!"</p>
+                <div class="lt-author">
+                    <img src="https://i.pravatar.cc/36?img=5" alt="">
+                    <div>
+                        <strong>Ananya Sharma</strong>
+                        <span>Patient since 2023</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="auth-right">
+        <div class="auth-right-inner">
+
+            <!-- Back button (hidden on step 1) -->
+            <button class="back-btn" id="backBtn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+
+            <!-- ===== STEP 1: ROLE SELECTION ===== -->
+            <div class="auth-step active" id="stepRole">
+                <div class="step-header">
+                    <h2>Who are you?</h2>
+                    <p>Select your role to continue</p>
+                </div>
+
+                <div class="role-cards">
+
+                    <div class="role-card" data-role="patient" onclick="selectRole('patient')">
+                        <div class="role-card-icon patient-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="role-card-body">
+                            <h3>Patient</h3>
+                            <p>Book appointments & manage your health</p>
+                        </div>
+                        <div class="role-card-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                        <div class="role-card-check">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+
+                    <div class="role-card" data-role="doctor" onclick="selectRole('doctor')">
+                        <div class="role-card-icon doctor-icon">
+                            <i class="fas fa-stethoscope"></i>
+                        </div>
+                        <div class="role-card-body">
+                            <h3>Doctor</h3>
+                            <p>Manage schedule & patient documents</p>
+                        </div>
+                        <div class="role-card-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                        <div class="role-card-check">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+
+                    <div class="role-card" data-role="admin" onclick="selectRole('admin')">
+                        <div class="role-card-icon admin-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="role-card-body">
+                            <h3>Admin</h3>
+                            <p>Oversee platform operations</p>
+                        </div>
+                        <div class="role-card-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                        <div class="role-card-check">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+
+                </div>
+
+                <p class="auth-footer-note">
+                    By continuing, you agree to our
+                    <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                </p>
+            </div>
+
+            <!-- ===== STEP 2: LOGIN / SIGNUP FORMS ===== -->
+            <div class="auth-step" id="stepForm">
+
+                <!-- Role indicator -->
+                <div class="selected-role-badge" id="selectedRoleBadge"></div>
+
+                <!-- Tabs -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="tabLogin" onclick="switchTab('login')">
+                        Sign In
+                    </button>
+                    <button class="auth-tab" id="tabSignup" onclick="switchTab('signup')">
+                        Sign Up
+                    </button>
+                    <div class="tab-slider" id="tabSlider"></div>
+                </div>
+
+                <!-- ---- LOGIN FORM ---- -->
+                <div class="form-panel active" id="loginForm">
+                    <form id="loginFormEl" method="POST" action="{% url 'accounts:login' %}" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="role" id="loginRole">
+                        <input type="hidden" name="next" value="{{ next }}">
+
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <div class="input-icon-wrap">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" name="email" class="form-control"
+                                       placeholder="you@example.com" required>
+                            </div>
+                            <span class="form-error" id="loginEmailError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <div class="input-icon-wrap">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" name="password" class="form-control"
+                                       id="loginPassword" placeholder="Enter your password" required>
+                                <button type="button" class="toggle-pw" onclick="togglePassword('loginPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <span class="form-error" id="loginPwError"></span>
+                        </div>
+
+                        <div class="form-row-space">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="remember">
+                                <span>Remember me</span>
+                            </label>
+                            <a href="#" class="forgot-link">Forgot Password?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-full btn-auth" id="loginBtn">
+                            <span class="btn-text">Sign In</span>
+                            <span class="btn-spinner" style="display:none;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                        </button>
+
+                        <div class="divider">or continue with</div>
+
+                        <button type="button" class="btn-google">
+                            <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" width="20">
+                            Continue with Google
+                        </button>
+
+                    </form>
+                </div>
+
+                <!-- ---- SIGNUP FORM ---- -->
+                <div class="form-panel" id="signupForm">
+                    <form id="signupFormEl" method="POST" action="{% url 'accounts:signup' %}" novalidate>
+                        {% csrf_token %}
+                        <input type="hidden" name="role" id="signupRole">
+                        <input type="hidden" name="next" value="{{ next }}">
+
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <div class="input-icon-wrap">
+                                <i class="fas fa-user"></i>
+                                <input type="text" name="name" class="form-control"
+                                       placeholder="Dr. John Doe / Jane Smith" required>
+                            </div>
+                            <span class="form-error" id="signupNameError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <div class="input-icon-wrap">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" name="email" class="form-control"
+                                       placeholder="you@example.com" required>
+                            </div>
+                            <span class="form-error" id="signupEmailError"></span>
+                        </div>
+
+                        <!-- Doctor-only fields -->
+                        <div class="doctor-fields" id="doctorFields" style="display:none;">
+                            <div class="form-group">
+                                <label class="form-label">Specialization</label>
+                                <div class="input-icon-wrap">
+                                    <i class="fas fa-stethoscope"></i>
+                                    <select name="specialization" class="form-control">
+                                        <option value="">Select Specialization</option>
+                                        <option>Cardiology</option>
+                                        <option>Neurology</option>
+                                        <option>Orthopedics</option>
+                                        <option>Pediatrics</option>
+                                        <option>Dermatology</option>
+                                        <option>Ophthalmology</option>
+                                        <option>Dentistry</option>
+                                        <option>Gynecology</option>
+                                        <option>Psychiatry</option>
+                                        <option>Oncology</option>
+                                        <option>Pulmonology</option>
+                                        <option>Nephrology</option>
+                                        <option>General Medicine</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Medical License Number</label>
+                                <div class="input-icon-wrap">
+                                    <i class="fas fa-id-card"></i>
+                                    <input type="text" name="license" class="form-control"
+                                           placeholder="e.g. MCI-12345678">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Patient-only fields -->
+                        <div class="patient-fields" id="patientFields" style="display:none;">
+                            <div class="form-two-col">
+                                <div class="form-group">
+                                    <label class="form-label">Age</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fas fa-birthday-cake"></i>
+                                        <input type="number" name="age" class="form-control"
+                                               placeholder="e.g. 28" min="1" max="120">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Blood Group</label>
+                                    <div class="input-icon-wrap">
+                                        <i class="fas fa-tint"></i>
+                                        <select name="blood_group" class="form-control">
+                                            <option value="">Select</option>
+                                            <option>A+</option><option>A-</option>
+                                            <option>B+</option><option>B-</option>
+                                            <option>AB+</option><option>AB-</option>
+                                            <option>O+</option><option>O-</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <div class="input-icon-wrap">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" name="password" class="form-control"
+                                       id="signupPassword" placeholder="Min. 8 characters" required>
+                                <button type="button" class="toggle-pw" onclick="togglePassword('signupPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <!-- Password strength bar -->
+                            <div class="pw-strength" id="pwStrength">
+                                <div class="pw-bar">
+                                    <div class="pw-fill" id="pwFill"></div>
+                                </div>
+                                <span class="pw-label" id="pwLabel">Enter password</span>
+                            </div>
+                            <span class="form-error" id="signupPwError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Confirm Password</label>
+                            <div class="input-icon-wrap">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" name="confirm_password" class="form-control"
+                                       id="confirmPassword" placeholder="Re-enter password" required>
+                            </div>
+                            <span class="form-error" id="confirmPwError"></span>
+                        </div>
+
+                        <label class="checkbox-label mb-3">
+                            <input type="checkbox" name="terms" required>
+                            <span>I agree to the <a href="#">Terms of Service</a> & <a href="#">Privacy Policy</a></span>
+                        </label>
+
+                        <button type="submit" class="btn btn-primary w-full btn-auth" id="signupBtn">
+                            <span class="btn-text">Create Account</span>
+                            <span class="btn-spinner" style="display:none;">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                        </button>
+
+                        <div class="divider">or continue with</div>
+
+                        <button type="button" class="btn-google">
+                            <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google" width="20">
+                            Continue with Google
+                        </button>
+
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/auth.js' %}?v=1"></script>
+{% endblock %}

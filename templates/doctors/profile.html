@@ -1,0 +1,321 @@
+{% extends 'doctors/base_doctor.html' %}
+{% load static custom_filters %}
+
+{% block title %}My Profile — Doctor{% endblock %}
+{% block breadcrumb %}My Profile{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/doctor_dashboard.css' %}?v=1">
+{% endblock %}
+
+{% block dash_content %}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <h2 style="font-size:1.4rem">My Profile</h2>
+    <button class="btn btn-primary" id="saveBtn" onclick="saveProfile()">
+        <i class="fas fa-save"></i> Save Changes
+    </button>
+</div>
+
+<div class="profile-grid">
+
+    <!-- Sidebar Card -->
+    <div>
+        <div class="profile-sidebar-card">
+            <div class="profile-avatar-wrap">
+                <img src="https://i.pravatar.cc/100?img=12"
+                     alt="Doctor" id="profileImg">
+                <label class="profile-avatar-edit" for="avatarInput">
+                    <i class="fas fa-camera"></i>
+                </label>
+                <input type="file" id="avatarInput" accept="image/*"
+                       style="display:none" onchange="previewAvatar(event)">
+            </div>
+            <div class="profile-name">Dr. Priya Sharma</div>
+            <div class="profile-role">
+                <i class="fas fa-circle" style="font-size:0.5rem"></i> Cardiologist
+            </div>
+
+            <!-- Verified Badge -->
+            <div class="verified-badge">
+                <i class="fas fa-check-circle"></i> Verified Doctor
+            </div>
+
+            <div class="profile-stats">
+                <div style="text-align:center">
+                    <div class="profile-stat-val">142</div>
+                    <div class="profile-stat-lbl">Patients</div>
+                </div>
+                <div style="text-align:center">
+                    <div class="profile-stat-val">4.9</div>
+                    <div class="profile-stat-lbl">Rating</div>
+                </div>
+                <div style="text-align:center">
+                    <div class="profile-stat-val">12</div>
+                    <div class="profile-stat-lbl">Yrs Exp</div>
+                </div>
+            </div>
+
+            <!-- Rating stars -->
+            <div style="display:flex;gap:4px;justify-content:center;margin-bottom:16px">
+                {% for i in "12345" %}
+                <i class="fas fa-star" style="color:#F59E0B;font-size:1rem"></i>
+                {% endfor %}
+            </div>
+            <p style="font-size:0.78rem;color:var(--gray-500)">
+                Based on 256 patient reviews
+            </p>
+        </div>
+
+        <!-- Account Settings -->
+        <div class="panel-card" style="margin-top:20px">
+            <div class="panel-header">
+                <h3><i class="fas fa-cog"
+                       style="color:var(--gray-500);margin-right:8px"></i>Settings</h3>
+            </div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:10px">
+                <button class="btn btn-outline w-full"
+                        style="justify-content:flex-start;gap:12px"
+                        onclick="openModal('changePwModal')">
+                    <i class="fas fa-lock" style="color:var(--primary)"></i>
+                    Change Password
+                </button>
+                <button class="btn btn-outline w-full"
+                        style="justify-content:flex-start;gap:12px">
+                    <i class="fas fa-bell" style="color:var(--accent)"></i>
+                    Notifications
+                </button>
+                <button class="btn btn-outline w-full"
+                        style="justify-content:flex-start;gap:12px">
+                    <i class="fas fa-calendar-alt" style="color:var(--secondary)"></i>
+                    Availability Settings
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Personal Info -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-user-md"
+                       style="color:var(--primary);margin-right:8px"></i>
+                    Professional Information</h3>
+            </div>
+            <div class="panel-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-control" value="Priya">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" class="form-control" value="Sharma">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control"
+                               value="priya.sharma@lifelinecare.in">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" class="form-control"
+                               value="+91 91234 56789">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group">
+                        <label class="form-label">Specialization</label>
+                        <select class="form-control">
+                            <option selected>Cardiology</option>
+                            <option>Neurology</option>
+                            <option>Orthopedics</option>
+                            <option>Pediatrics</option>
+                            <option>Dermatology</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Experience (years)</label>
+                        <input type="number" class="form-control" value="12">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group">
+                        <label class="form-label">License Number</label>
+                        <input type="text" class="form-control"
+                               value="MCI-12345678">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Consultation Fee (₹)</label>
+                        <input type="number" class="form-control" value="500">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Professional Bio</label>
+                    <textarea class="form-control" rows="3">
+Dr. Priya Sharma is a board-certified cardiologist with over 12 years of experience in treating heart conditions. She specializes in preventive cardiology, heart failure management, and cardiac imaging.</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Availability -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-clock"
+                       style="color:var(--secondary);margin-right:8px"></i>
+                    Availability Hours</h3>
+            </div>
+            <div class="panel-body">
+                <div class="availability-grid">
+                    {% for day in "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday"|split:"," %}
+                    <div class="avail-row">
+                        <label class="checkbox-label" style="min-width:110px">
+                            <input type="checkbox"
+                                   {% if forloop.counter < 7 %}checked{% endif %}>
+                            <span>{{ day }}</span>
+                        </label>
+                        <input type="time" class="form-control"
+                               value="09:00"
+                               style="width:120px"
+                               {% if forloop.counter == 7 %}disabled{% endif %}>
+                        <span style="color:var(--gray-400)">to</span>
+                        <input type="time" class="form-control"
+                               value="{% if forloop.counter == 6 %}14:00{% else %}18:00{% endif %}"
+                               style="width:120px"
+                               {% if forloop.counter == 7 %}disabled{% endif %}>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-star"
+                       style="color:#F59E0B;margin-right:8px"></i>
+                    Patient Reviews</h3>
+            </div>
+            <div class="panel-body" style="padding:8px 22px 16px">
+                {% for i in "123" %}
+                <div class="review-item">
+                    <div class="review-header">
+                        <img src="https://i.pravatar.cc/36?img={{ forloop.counter|add:4 }}"
+                             alt="">
+                        <div>
+                            <p style="font-weight:700;font-size:0.88rem">
+                                Patient {{ forloop.counter }}
+                            </p>
+                            <div style="color:#F59E0B;font-size:0.75rem">
+                                ★★★★★
+                            </div>
+                        </div>
+                        <span style="margin-left:auto;font-size:0.75rem;
+                                     color:var(--gray-400)">
+                            Feb {{ forloop.counter|add:15 }}, 2025
+                        </span>
+                    </div>
+                    <p class="review-text">
+                        {% if forloop.counter == 1 %}
+                        Excellent doctor! Very thorough and explained everything clearly.
+                        {% elif forloop.counter == 2 %}
+                        Dr. Sharma is very professional and caring. Highly recommended!
+                        {% else %}
+                        Great experience. The diagnosis was spot on and treatment worked well.
+                        {% endif %}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="changePwModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-lock"
+                   style="color:var(--primary);margin-right:8px"></i>
+                Change Password</h3>
+            <button class="modal-close" onclick="closeModal('changePwModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Current Password</label>
+                <input type="password" class="form-control"
+                       placeholder="Enter current password">
+            </div>
+            <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input type="password" class="form-control"
+                       placeholder="Min. 8 characters">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" class="form-control"
+                       placeholder="Re-enter new password">
+            </div>
+            <div style="display:flex;gap:10px">
+                <button class="btn btn-outline w-full justify-center"
+                        onclick="closeModal('changePwModal')">Cancel</button>
+                <button class="btn btn-primary w-full justify-center">
+                    <i class="fas fa-save"></i> Update
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+function previewAvatar(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('profileImg').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function saveProfile() {
+    const btn = document.getElementById('saveBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    btn.disabled = true;
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+        btn.style.background = 'var(--secondary)';
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+            btn.style.background = '';
+            btn.disabled = false;
+        }, 2000);
+    }, 1200);
+}
+
+function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+// Toggle availability inputs on checkbox change
+document.querySelectorAll('.avail-row input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', function() {
+        const inputs = this.closest('.avail-row').querySelectorAll('input[type="time"]');
+        inputs.forEach(inp => inp.disabled = !this.checked);
+    });
+});
+</script>
+{% endblock %}

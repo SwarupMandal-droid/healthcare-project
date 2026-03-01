@@ -1,0 +1,312 @@
+{% extends 'doctors/base_doctor.html' %}
+{% load static %}
+
+{% block title %}My Appointments — Doctor{% endblock %}
+{% block breadcrumb %}My Appointments{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/doctor_dashboard.css' %}?v=1">
+{% endblock %}
+
+{% block dash_content %}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <h2 style="font-size:1.4rem">My Appointments</h2>
+    <div style="display:flex;gap:10px">
+        <select class="form-control" style="width:auto;padding:9px 16px">
+            <option>All Dates</option>
+            <option>Today</option>
+            <option>This Week</option>
+            <option>This Month</option>
+        </select>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="page-tabs">
+    <button class="page-tab active" onclick="switchTab(this,'today')">
+        <i class="fas fa-sun"></i> Today (4)
+    </button>
+    <button class="page-tab" onclick="switchTab(this,'upcoming')">
+        <i class="fas fa-clock"></i> Upcoming (8)
+    </button>
+    <button class="page-tab" onclick="switchTab(this,'completed')">
+        <i class="fas fa-check"></i> Completed (142)
+    </button>
+    <button class="page-tab" onclick="switchTab(this,'cancelled')">
+        <i class="fas fa-times"></i> Cancelled (3)
+    </button>
+</div>
+
+<!-- Today Tab -->
+<div class="tab-content" id="tab-today">
+    <div class="appt-table-card">
+        <div class="appt-row appt-table-head">
+            <span>Patient</span>
+            <span>Time Slot</span>
+            <span>Issue</span>
+            <span>Status</span>
+            <span style="text-align:right">Actions</span>
+        </div>
+
+        {% for i in "1234" %}
+        <div class="appt-row">
+            <div class="appt-doc-info">
+                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:5 }}" alt="">
+                <div class="appt-doc-info-text">
+                    <strong>Patient {{ forloop.counter }}</strong>
+                    <span>Age: {{ forloop.counter|add:24 }}</span>
+                </div>
+            </div>
+            <div>
+                <div style="font-weight:600;font-size:0.88rem">
+                    {% if forloop.counter == 1 %}10:00 AM
+                    {% elif forloop.counter == 2 %}11:30 AM
+                    {% elif forloop.counter == 3 %}2:00 PM
+                    {% else %}4:30 PM{% endif %}
+                </div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">Today</div>
+            </div>
+            <div style="font-size:0.85rem;color:var(--gray-600);max-width:160px">
+                {% if forloop.counter == 1 %}Chest pain, follow-up
+                {% elif forloop.counter == 2 %}Routine checkup
+                {% elif forloop.counter == 3 %}ECG review
+                {% else %}BP monitoring{% endif %}
+            </div>
+            <span class="badge {% if forloop.counter == 3 %}badge-warning{% else %}badge-success{% endif %}">
+                {% if forloop.counter == 3 %}Pending{% else %}Confirmed{% endif %}
+            </span>
+            <div class="appt-row-actions">
+                <button class="btn btn-sm btn-outline"
+                        onclick="openPatientDetail({{ forloop.counter }})">
+                    <i class="fas fa-eye"></i> View
+                </button>
+                <button class="btn btn-sm btn-secondary"
+                        onclick="markComplete(this)">
+                    <i class="fas fa-check"></i> Done
+                </button>
+                <button class="btn btn-sm btn-outline"
+                        style="color:var(--danger);border-color:var(--danger)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+</div>
+
+<!-- Upcoming Tab -->
+<div class="tab-content" id="tab-upcoming" style="display:none">
+    <div class="appt-table-card">
+        <div class="appt-row appt-table-head">
+            <span>Patient</span>
+            <span>Date & Time</span>
+            <span>Issue</span>
+            <span>Status</span>
+            <span style="text-align:right">Actions</span>
+        </div>
+        {% for i in "12345678" %}
+        <div class="appt-row">
+            <div class="appt-doc-info">
+                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:15 }}" alt="">
+                <div class="appt-doc-info-text">
+                    <strong>Patient {{ forloop.counter }}</strong>
+                    <span>Age: {{ forloop.counter|add:20 }}</span>
+                </div>
+            </div>
+            <div>
+                <div style="font-weight:600;font-size:0.88rem">
+                    Mar {{ forloop.counter|add:2 }}, 2025
+                </div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">
+                    {{ forloop.counter|add:9 }}:00 AM
+                </div>
+            </div>
+            <div style="font-size:0.85rem;color:var(--gray-600)">
+                General consultation
+            </div>
+            <span class="badge badge-success">Confirmed</span>
+            <div class="appt-row-actions">
+                <button class="btn btn-sm btn-outline"
+                        onclick="openPatientDetail({{ forloop.counter }})">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline"
+                        style="color:var(--danger);border-color:var(--danger)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Completed Tab -->
+<div class="tab-content" id="tab-completed" style="display:none">
+    <div class="appt-table-card">
+        <div class="appt-row appt-table-head">
+            <span>Patient</span>
+            <span>Date & Time</span>
+            <span>Issue</span>
+            <span>Status</span>
+            <span style="text-align:right">Actions</span>
+        </div>
+        {% for i in "12345" %}
+        <div class="appt-row">
+            <div class="appt-doc-info">
+                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:25 }}" alt="">
+                <div class="appt-doc-info-text">
+                    <strong>Patient {{ forloop.counter }}</strong>
+                    <span>Age: {{ forloop.counter|add:30 }}</span>
+                </div>
+            </div>
+            <div>
+                <div style="font-weight:600;font-size:0.88rem">
+                    Feb {{ forloop.counter|add:10 }}, 2025
+                </div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">10:00 AM</div>
+            </div>
+            <div style="font-size:0.85rem;color:var(--gray-600)">Cardiac checkup</div>
+            <span class="badge badge-gray">Completed</span>
+            <div class="appt-row-actions">
+                <button class="btn btn-sm btn-outline">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <a href="{% url 'doctors:upload' %}"
+                   class="btn btn-sm btn-primary">
+                    <i class="fas fa-upload"></i> Upload Docs
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Cancelled Tab -->
+<div class="tab-content" id="tab-cancelled" style="display:none">
+    <div class="appt-table-card">
+        <div class="appt-row appt-table-head">
+            <span>Patient</span>
+            <span>Date & Time</span>
+            <span>Issue</span>
+            <span>Status</span>
+            <span style="text-align:right">Actions</span>
+        </div>
+        {% for i in "123" %}
+        <div class="appt-row">
+            <div class="appt-doc-info">
+                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:35 }}" alt="">
+                <div class="appt-doc-info-text">
+                    <strong>Patient {{ forloop.counter }}</strong>
+                    <span>Age: {{ forloop.counter|add:22 }}</span>
+                </div>
+            </div>
+            <div>
+                <div style="font-weight:600;font-size:0.88rem">
+                    Jan {{ forloop.counter|add:8 }}, 2025
+                </div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">2:00 PM</div>
+            </div>
+            <div style="font-size:0.85rem;color:var(--gray-600)">Follow-up</div>
+            <span class="badge badge-danger">Cancelled</span>
+            <div class="appt-row-actions">
+                <button class="btn btn-sm btn-outline">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Patient Detail Modal -->
+<div class="modal-overlay" id="patientDetailModal">
+    <div class="modal-box modal-lg">
+        <div class="modal-header">
+            <h3>Patient Details</h3>
+            <button class="modal-close" onclick="closeModal('patientDetailModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:20px">
+                <img src="https://i.pravatar.cc/72?img=5"
+                     style="width:72px;height:72px;border-radius:50%;border:3px solid var(--primary-light)">
+                <div>
+                    <h3 style="margin-bottom:4px">Ananya Sharma</h3>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap">
+                        <span class="badge badge-info">Age: 28</span>
+                        <span class="badge badge-danger">Blood: B+</span>
+                        <span class="badge badge-gray">Female</span>
+                    </div>
+                </div>
+            </div>
+            <div class="appt-detail-grid">
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-calendar"></i> Date & Time</span>
+                    <span class="detail-val">Today — 10:00 AM</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-notes-medical"></i> Symptoms</span>
+                    <span class="detail-val">Chest pain, shortness of breath</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-pills"></i> Allergies</span>
+                    <span class="detail-val">Penicillin</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-heartbeat"></i> Conditions</span>
+                    <span class="detail-val">Mild Hypertension</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-phone"></i> Contact</span>
+                    <span class="detail-val">+91 98765 43210</span>
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:20px">
+                <button class="btn btn-outline w-full justify-center"
+                        onclick="closeModal('patientDetailModal')">
+                    Close
+                </button>
+                <a href="{% url 'doctors:upload' %}"
+                   class="btn btn-primary w-full justify-center">
+                    <i class="fas fa-upload"></i> Upload Documents
+                </a>
+                <button class="btn btn-secondary w-full justify-center"
+                        onclick="markComplete(this);closeModal('patientDetailModal')">
+                    <i class="fas fa-check"></i> Mark Complete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+function switchTab(btn, tab) {
+    document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    btn.classList.add('active');
+    document.getElementById('tab-' + tab).style.display = 'block';
+}
+
+function openPatientDetail(id) {
+    document.getElementById('patientDetailModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function markComplete(btn) {
+    const row = btn.closest('.appt-row');
+    const badge = row.querySelector('.badge');
+    badge.className = 'badge badge-gray';
+    badge.textContent = 'Completed';
+    btn.innerHTML = '<i class="fas fa-check-double"></i> Done';
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+}
+</script>
+{% endblock %}

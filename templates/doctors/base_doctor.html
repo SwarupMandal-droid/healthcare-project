@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="patient-layout">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-logo">
+            <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+            <span>Lifeline <strong>Care</strong></span>
+        </div>
+
+        <div class="sidebar-user">
+    <div class="sidebar-avatar">
+        {% if request.user.profile_photo %}
+        <img src="{{ request.user.profile_photo.url }}" alt="Doctor">
+        {% else %}
+        <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name }}&background=059669&color=fff"
+             alt="Doctor">
+        {% endif %}
+        <span class="online-indicator"></span>
+    </div>
+    <div class="sidebar-user-info">
+        <p class="sidebar-user-name">Dr. {{ request.user.get_full_name }}</p>
+        <p class="sidebar-user-role">
+            <i class="fas fa-circle"></i>
+            {% if request.user.doctor_profile.specialization %}
+                {{ request.user.doctor_profile.specialization.name }}
+            {% else %}Doctor{% endif %}
+        </p>
+    </div>
+</div>
+
+        <nav class="sidebar-nav">
+            <p class="nav-section-label">Main Menu</p>
+
+            <a href="{% url 'doctors:dashboard' %}"
+               class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="{% url 'doctors:appointments' %}"
+               class="sidebar-link {% if request.resolver_match.url_name == 'appointments' %}active{% endif %}">
+                <i class="fas fa-calendar-check"></i>
+                <span>My Appointments</span>
+                <span class="nav-badge">4</span>
+            </a>
+
+            <a href="{% url 'doctors:documents' %}"
+               class="sidebar-link {% if request.resolver_match.url_name == 'documents' %}active{% endif %}">
+                <i class="fas fa-folder-open"></i>
+                <span>Patient Documents</span>
+            </a>
+
+            <a href="{% url 'doctors:upload' %}"
+               class="sidebar-link {% if request.resolver_match.url_name == 'upload' %}active{% endif %}">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>Upload Documents</span>
+            </a>
+
+            <p class="nav-section-label">Account</p>
+
+            <a href="{% url 'doctors:profile' %}"
+               class="sidebar-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <i class="fas fa-user-md"></i>
+                <span>My Profile</span>
+            </a>
+
+            <a href="#" class="sidebar-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+
+            <a href="{% url 'accounts:logout' %}" class="sidebar-link logout-link">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- ===== MAIN ===== -->
+    <div class="patient-main" id="patientMain">
+
+        <header class="dash-header">
+            <div class="dash-header-left">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="dash-breadcrumb">
+                    {% block breadcrumb %}Dashboard{% endblock %}
+                </div>
+            </div>
+
+            <div class="dash-header-right">
+                <div class="header-search hide-mobile">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search patients...">
+                </div>
+
+                <div class="header-icon-btn notif-btn" id="notifBtn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-dot"></span>
+                    <div class="notif-dropdown" id="notifDropdown">
+                        <div class="notif-header">
+                            <h4>Notifications</h4>
+                            <a href="#">Mark all read</a>
+                        </div>
+                        <div class="notif-list">
+                            <div class="notif-item unread">
+                                <div class="notif-icon appt-icon">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </div>
+                                <div class="notif-body">
+                                    <p><strong>Ananya Sharma</strong> booked an appointment</p>
+                                    <span>Today, 9:15 AM</span>
+                                </div>
+                            </div>
+                            <div class="notif-item unread">
+                                <div class="notif-icon pay-icon">
+                                    <i class="fas fa-rupee-sign"></i>
+                                </div>
+                                <div class="notif-body">
+                                    <p>Payment received — <strong>₹500</strong></p>
+                                    <span>Today, 9:15 AM</span>
+                                </div>
+                            </div>
+                            <div class="notif-item">
+                                <div class="notif-icon doc-icon">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div class="notif-body">
+                                    <p><strong>Rahul Verma</strong> confirmed appointment</p>
+                                    <span>Yesterday, 4:00 PM</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="notif-footer">
+                            <a href="#">View all notifications</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header-profile">
+                    <img src="https://i.pravatar.cc/36?img=12" alt="">
+                    <span class="hide-mobile">Dr. Priya</span>
+                    <i class="fas fa-chevron-down hide-mobile"
+                       style="font-size:0.7rem;color:var(--gray-400)"></i>
+                </div>
+            </div>
+        </header>
+
+        <main class="dash-content">
+            {% block dash_content %}{% endblock %}
+        </main>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/patient_dashboard.js' %}?v=1"></script>
+<script src="{% static 'js/doctor_dashboard.js' %}?v=1"></script>
+{% block page_js %}{% endblock %}
+{% endblock %}

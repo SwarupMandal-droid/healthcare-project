@@ -1,0 +1,564 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Lifeline Care — Your Health, Our Priority{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ========== NAVBAR ========== -->
+<nav class="navbar" id="navbar">
+    <div class="container">
+        <div class="nav-inner">
+
+            <!-- Logo -->
+            <a href="{% url 'patients:home' %}" class="nav-logo">
+                <div class="logo-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <span>Lifeline <strong>Care</strong></span>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="#specializations" class="nav-link">Find Doctors</a></li>
+                <li><a href="#features" class="nav-link">Services</a></li>
+                <li><a href="#about" class="nav-link">About</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+
+            <!-- Auth Buttons -->
+            <div class="nav-actions">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'accounts:logout' %}" class="btn btn-outline btn-sm">Logout</a>
+                    {% if user.role == 'doctor' %}
+                        <a href="{% url 'doctors:dashboard' %}" class="btn btn-primary btn-sm">Dashboard</a>
+                    {% elif user.role == 'admin' or user.is_superuser %}
+                        <a href="{% url 'admin:index' %}" class="btn btn-primary btn-sm">Admin Panel</a>
+                    {% else %}
+                        <a href="{% url 'patients:dashboard' %}" class="btn btn-primary btn-sm">Dashboard</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'accounts:auth' %}" class="btn btn-outline btn-sm">Login</a>
+                    <a href="{% url 'accounts:auth' %}" class="btn btn-primary btn-sm">Sign Up</a>
+                {% endif %}
+            </div>
+
+            <!-- Hamburger -->
+            <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+
+        </div>
+    </div>
+</nav>
+
+<!-- Mobile Menu Overlay -->
+<div class="mobile-menu" id="mobileMenu">
+    <ul>
+        <li><a href="#home" onclick="closeMobileMenu()">Home</a></li>
+        <li><a href="#specializations" onclick="closeMobileMenu()">Find Doctors</a></li>
+        <li><a href="#features" onclick="closeMobileMenu()">Services</a></li>
+        <li><a href="#about" onclick="closeMobileMenu()">About</a></li>
+        <li><a href="#contact" onclick="closeMobileMenu()">Contact</a></li>
+        {% if user.is_authenticated %}
+            <li><a href="{% url 'accounts:logout' %}" class="btn btn-outline w-full" style="justify-content:center; margin-bottom: 10px;">Logout</a></li>
+            {% if user.role == 'doctor' %}
+                <li><a href="{% url 'doctors:dashboard' %}" class="btn btn-primary w-full" style="justify-content:center;">Dashboard</a></li>
+            {% elif user.role == 'admin' or user.is_superuser %}
+                <li><a href="{% url 'admin:index' %}" class="btn btn-primary w-full" style="justify-content:center;">Admin Panel</a></li>
+            {% else %}
+                <li><a href="{% url 'patients:dashboard' %}" class="btn btn-primary w-full" style="justify-content:center;">Dashboard</a></li>
+            {% endif %}
+        {% else %}
+            <li><a href="{% url 'accounts:auth' %}" class="btn btn-primary w-full" style="justify-content:center;">Get Started</a></li>
+        {% endif %}
+    </ul>
+</div>
+
+
+<!-- ========== HERO SECTION ========== -->
+<section class="hero" id="home">
+    <div class="hero-bg">
+        <div class="hero-blob blob-1"></div>
+        <div class="hero-blob blob-2"></div>
+        <div class="hero-blob blob-3"></div>
+    </div>
+
+    <div class="container">
+        <div class="hero-grid">
+
+            <!-- Hero Text -->
+            <div class="hero-content animate-fade-up">
+                <div class="hero-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    Trusted by 10,000+ Patients
+                </div>
+                <h1 class="hero-title">
+                    Your Health,<br>
+                    <span class="text-gradient">Our Priority</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Connect with top-rated doctors, book appointments instantly, 
+                    and manage your health journey — all in one place.
+                </p>
+                <div class="hero-actions">
+                    <a href="{% url 'accounts:auth' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-calendar-check"></i>
+                        Book Appointment
+                    </a>
+                    <a href="#specializations" class="btn btn-outline btn-lg">
+                        <i class="fas fa-user-md"></i>
+                        Find a Doctor
+                    </a>
+                </div>
+
+                <!-- Trust Indicators -->
+                <div class="hero-trust">
+                    <div class="trust-item">
+                        <div class="trust-avatars">
+                            <img src="https://i.pravatar.cc/32?img=1" alt="">
+                            <img src="https://i.pravatar.cc/32?img=2" alt="">
+                            <img src="https://i.pravatar.cc/32?img=3" alt="">
+                        </div>
+                        <span><strong>500+</strong> Expert Doctors</span>
+                    </div>
+                    <div class="trust-divider"></div>
+                    <div class="trust-item">
+                        <div class="trust-stars">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span><strong>4.9/5</strong> Rating</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Visual Card -->
+            <div class="hero-visual">
+                <div class="hero-card main-card">
+                    <div class="card-top">
+                        <div class="doctor-mini">
+                            <img src="https://i.pravatar.cc/56?img=12" alt="Doctor" class="doctor-mini-img">
+                            <div>
+                                <p class="doctor-mini-name">Dr. Priya Sharma</p>
+                                <p class="doctor-mini-spec">Cardiologist</p>
+                            </div>
+                            <span class="online-dot"></span>
+                        </div>
+                    </div>
+                    <div class="card-slots">
+                        <p class="slots-label">Available Today</p>
+                        <div class="slots-grid">
+                            <span class="slot active">10:00 AM</span>
+                            <span class="slot">11:30 AM</span>
+                            <span class="slot active">2:00 PM</span>
+                            <span class="slot">4:30 PM</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary w-full">
+                        <i class="fas fa-calendar-plus"></i> Book Now
+                    </button>
+                </div>
+
+                <!-- Floating cards -->
+                <div class="float-card float-1">
+                    <i class="fas fa-check-circle text-secondary"></i>
+                    <div>
+                        <p class="float-title">Appointment Confirmed</p>
+                        <p class="float-sub">Today, 2:00 PM</p>
+                    </div>
+                </div>
+
+                <div class="float-card float-2">
+                    <div class="ai-icon"><i class="fas fa-robot"></i></div>
+                    <div>
+                        <p class="float-title">AI Assistant</p>
+                        <p class="float-sub">Always available 24/7</p>
+                    </div>
+                </div>
+
+                <div class="float-card float-3">
+                    <i class="fas fa-shield-alt" style="color: var(--accent)"></i>
+                    <div>
+                        <p class="float-title">Secure Payments</p>
+                        <p class="float-sub">UPI & Card supported</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ========== STATS SECTION ========== -->
+<section class="stats-section">
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-icon" style="background:#EFF6FF;color:var(--primary)">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div>
+                    <h3 class="stat-number" data-target="500">0</h3>
+                    <p class="stat-label">Expert Doctors</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon" style="background:#D1FAE5;color:var(--secondary)">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <h3 class="stat-number" data-target="10000">0</h3>
+                    <p class="stat-label">Happy Patients</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon" style="background:#FEF3C7;color:var(--accent)">
+                    <i class="fas fa-stethoscope"></i>
+                </div>
+                <div>
+                    <h3 class="stat-number" data-target="50">0</h3>
+                    <p class="stat-label">Specializations</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon" style="background:#FEE2E2;color:var(--danger)">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div>
+                    <h3 class="stat-number" data-target="25000">0</h3>
+                    <p class="stat-label">Appointments Done</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ========== FEATURES SECTION ========== -->
+<section class="features-section" id="features">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Why Choose Us</span>
+            <h2 class="section-title">Everything You Need for<br><span class="text-gradient">Better Healthcare</span></h2>
+            <p class="section-subtitle">We bring together the best doctors, smart technology, and seamless experience.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg,#EFF6FF,#DBEAFE);">
+                    <i class="fas fa-robot" style="color:var(--primary)"></i>
+                </div>
+                <h3>AI Health Assistant</h3>
+                <p>Describe your symptoms and our AI will suggest the right specialist and help you book instantly.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg,#D1FAE5,#A7F3D0);">
+                    <i class="fas fa-bolt" style="color:var(--secondary)"></i>
+                </div>
+                <h3>Instant Booking</h3>
+                <p>Book appointments in under 60 seconds. Choose your preferred doctor, date, and time slot.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg,#FEF3C7,#FDE68A);">
+                    <i class="fas fa-lock" style="color:var(--accent)"></i>
+                </div>
+                <h3>Secure Payments</h3>
+                <p>Pay securely via UPI or Credit/Debit Card. All transactions are encrypted and protected.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg,#FEE2E2,#FECACA);">
+                    <i class="fas fa-file-medical" style="color:var(--danger)"></i>
+                </div>
+                <h3>Digital Records</h3>
+                <p>Access prescriptions, lab reports, and diet charts uploaded directly by your doctor.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg,#F3E8FF,#E9D5FF);">
+                    <i class="fas fa-star" style="color:#7C3AED"></i>
+                </div>
+                <h3>Verified Doctors</h3>
+                <p>Every doctor is verified with license checks. Read real reviews from actual patients.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon" style="background: linear-gradient(135deg,#ECFDF5,#D1FAE5);">
+                    <i class="fas fa-clock" style="color:#059669"></i>
+                </div>
+                <h3>24/7 Support</h3>
+                <p>Our AI assistant and support team are available round the clock to help you anytime.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ========== SPECIALIZATIONS SECTION ========== -->
+<section class="spec-section" id="specializations">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Browse by Specialty</span>
+            <h2 class="section-title">Find the Right Doctor<br><span class="text-gradient">for Your Needs</span></h2>
+            <p class="section-subtitle">Choose from 50+ medical specializations and connect with experts instantly.</p>
+        </div>
+
+        <div class="spec-grid">
+            {% for spec in specializations %}
+            <a href="{% url 'patients:find_doctors' %}?spec={{ spec.slug }}" class="spec-card">
+                <div class="spec-icon" style="background: {{ spec.bg }}; color: {{ spec.color }}">
+                    <i class="{{ spec.icon }}"></i>
+                </div>
+                <h4>{{ spec.name }}</h4>
+                <p>{{ spec.doctor_count }}+ Doctors</p>
+            </a>
+            {% empty %}
+            <!-- Static fallback while DB not connected -->
+            <a href="#" class="spec-card">
+                <div class="spec-icon" style="background:#FEE2E2;color:#DC2626"><i class="fas fa-heart"></i></div>
+                <h4>Cardiology</h4><p>24+ Doctors</p>
+            </a>
+            <a href="#" class="spec-card">
+                <div class="spec-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-brain"></i></div>
+                <h4>Neurology</h4><p>18+ Doctors</p>
+            </a>
+            <a href="#" class="spec-card">
+                <div class="spec-icon" style="background:#EFF6FF;color:#2563EB"><i class="fas fa-bone"></i></div>
+                <h4>Orthopedics</h4><p>22+ Doctors</p>
+            </a>
+            <a href="#" class="spec-card">
+                <div class="spec-icon" style="background:#D1FAE5;color:#059669"><i class="fas fa-child"></i></div>
+                <h4>Pediatrics</h4><p>30+ Doctors</p>
+            </a>
+            <a href="#" class="spec-card">
+                <div class="spec-icon" style="background:#F3E8FF;color:#7C3AED"><i class="fas fa-eye"></i></div>
+                <h4>Ophthalmology</h4><p>15+ Doctors</p>
+            </a>
+            <a href="#" class="spec-card">
+                <div class="spec-icon" style="background:#FCE7F3;color:#DB2777"><i class="fas fa-allergies"></i></div>
+                <h4>Dermatology</h4><p>20+ Doctors</p>
+            </a>
+            <a href="#" class="spec-card">
+                <div class="spec-icon" style="background:#ECFDF5;color:#10B981"><i class="fas fa-tooth"></i></div>
+                <h4>Dentistry</h4><p>35+ Doctors</p>
+            </a>
+            <a href="#" class="spec-card">
+                <div class="spec-icon" style="background:#FFF7ED;color:#EA580C"><i class="fas fa-lungs"></i></div>
+                <h4>Pulmonology</h4><p>12+ Doctors</p>
+            </a>
+            <a href="#" class="spec-card">
+                <div class="spec-icon" style="background:#EFF6FF;color:#0284C7"><i class="fas fa-kidneys"></i></div>
+                <h4>Nephrology</h4><p>10+ Doctors</p>
+            </a>
+            <a href="#" class="spec-card">
+                <div class="spec-icon" style="background:#FEF9C3;color:#CA8A04"><i class="fas fa-dna"></i></div>
+                <h4>Oncology</h4><p>8+ Doctors</p>
+            </a>
+            <a href="#" class="spec-card">
+                <div class="spec-icon" style="background:#F0FDF4;color:#16A34A"><i class="fas fa-pills"></i></div>
+                <h4>Psychiatry</h4><p>16+ Doctors</p>
+            </a>
+            <a href="#" class="spec-card">
+                <div class="spec-icon" style="background:#FFF1F2;color:#E11D48"><i class="fas fa-venus"></i></div>
+                <h4>Gynecology</h4><p>28+ Doctors</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+
+<!-- ========== HOW IT WORKS ========== -->
+<section class="how-section" id="about">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Simple Process</span>
+            <h2 class="section-title">Get Care in<br><span class="text-gradient">3 Easy Steps</span></h2>
+        </div>
+
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">01</div>
+                <div class="step-icon"><i class="fas fa-search"></i></div>
+                <h3>Find Your Doctor</h3>
+                <p>Search by symptom, specialization, or doctor name. Filter by rating, availability, and fee.</p>
+            </div>
+            <div class="step-arrow"><i class="fas fa-arrow-right"></i></div>
+            <div class="step-card">
+                <div class="step-number">02</div>
+                <div class="step-icon"><i class="fas fa-calendar-alt"></i></div>
+                <h3>Book Appointment</h3>
+                <p>Choose your preferred date and time slot. Add your symptoms and any relevant notes.</p>
+            </div>
+            <div class="step-arrow"><i class="fas fa-arrow-right"></i></div>
+            <div class="step-card">
+                <div class="step-number">03</div>
+                <div class="step-icon"><i class="fas fa-stethoscope"></i></div>
+                <h3>Get Treated</h3>
+                <p>Meet your doctor and receive prescriptions, lab orders, and follow-up care digitally.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ========== TESTIMONIALS ========== -->
+<section class="testimonials-section">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Patient Stories</span>
+            <h2 class="section-title">What Our Patients<br><span class="text-gradient">Are Saying</span></h2>
+        </div>
+
+        <div class="testimonials-track" id="testimonialsTrack">
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>"Lifeline Care made it so easy to find a cardiologist. Booked my appointment in minutes and the doctor was amazing. Highly recommend!"</p>
+                <div class="testimonial-author">
+                    <img src="https://i.pravatar.cc/40?img=5" alt="">
+                    <div><strong>Ananya Sharma</strong><span>Cardiac Patient</span></div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>"The AI assistant helped me understand my symptoms and recommended the right specialist. The whole process was smooth and professional."</p>
+                <div class="testimonial-author">
+                    <img src="https://i.pravatar.cc/40?img=8" alt="">
+                    <div><strong>Rahul Verma</strong><span>Neurology Patient</span></div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>"I love how I can access all my prescriptions and lab reports in one place. My doctor uploads everything instantly after each visit."</p>
+                <div class="testimonial-author">
+                    <img src="https://i.pravatar.cc/40?img=9" alt="">
+                    <div><strong>Meera Patel</strong><span>Regular Patient</span></div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>"As a working professional, I never had time for doctor visits. Now I can book during lunch break and manage everything from my phone!"</p>
+                <div class="testimonial-author">
+                    <img src="https://i.pravatar.cc/40?img=15" alt="">
+                    <div><strong>Karan Mehta</strong><span>Dermatology Patient</span></div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>"The payment system is so secure and simple. UPI payments go through instantly and I always get a confirmation right away."</p>
+                <div class="testimonial-author">
+                    <img src="https://i.pravatar.cc/40?img=20" alt="">
+                    <div><strong>Sunita Rao</strong><span>Pediatrics Patient</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carousel Controls -->
+        <div class="testimonial-controls">
+            <button class="tcontrol-btn" id="tPrev"><i class="fas fa-arrow-left"></i></button>
+            <div class="tcontrol-dots" id="tDots"></div>
+            <button class="tcontrol-btn" id="tNext"><i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+</section>
+
+
+<!-- ========== CTA SECTION ========== -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-card">
+            <div class="cta-blob"></div>
+            <div class="cta-content">
+                <h2>Ready to Take Control<br>of Your Health?</h2>
+                <p>Join thousands of patients who trust Lifeline Care for their healthcare needs.</p>
+                <div class="cta-actions">
+                    <a href="{% url 'accounts:auth' %}" class="btn btn-white btn-lg">
+                        <i class="fas fa-user-plus"></i> Get Started Free
+                    </a>
+                    <a href="#specializations" class="btn btn-outline-white btn-lg">
+                        <i class="fas fa-search"></i> Browse Doctors
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ========== FOOTER ========== -->
+<footer class="footer" id="contact">
+    <div class="container">
+        <div class="footer-grid">
+
+            <!-- Brand -->
+            <div class="footer-brand">
+                <a href="#" class="nav-logo">
+                    <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+                    <span>Lifeline <strong>Care</strong></span>
+                </a>
+                <p>Your trusted healthcare companion. Connecting patients with the best doctors seamlessly.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#specializations">Find Doctors</a></li>
+                    <li><a href="#features">Services</a></li>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="{% url 'accounts:auth' %}">Login / Signup</a></li>
+                </ul>
+            </div>
+
+            <!-- Specializations -->
+            <div class="footer-col">
+                <h4>Popular Specializations</h4>
+                <ul>
+                    <li><a href="#">Cardiology</a></li>
+                    <li><a href="#">Neurology</a></li>
+                    <li><a href="#">Orthopedics</a></li>
+                    <li><a href="#">Pediatrics</a></li>
+                    <li><a href="#">Dermatology</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact -->
+            <div class="footer-col">
+                <h4>Contact Us</h4>
+                <ul class="contact-list">
+                    <li><i class="fas fa-map-marker-alt"></i> 123 Healthcare Ave, Mumbai, India</li>
+                    <li><i class="fas fa-phone"></i> +91 98765 43210</li>
+                    <li><i class="fas fa-envelope"></i> support@lifelinecare.in</li>
+                    <li><i class="fas fa-clock"></i> Mon–Sat: 9AM – 8PM</li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2025 Lifeline Care. All rights reserved.</p>
+            <div class="footer-bottom-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Cookie Policy</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/home.js' %}"></script>
+{% endblock %}

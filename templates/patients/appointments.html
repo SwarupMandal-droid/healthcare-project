@@ -1,0 +1,255 @@
+{% extends 'patients/base_patient.html' %}
+{% load static %}
+
+{% block title %}My Appointments — Lifeline Care{% endblock %}
+{% block breadcrumb %}My Appointments{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}?v=1">
+{% endblock %}
+
+{% block dash_content %}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <h2 style="font-size:1.4rem">My Appointments</h2>
+    <a href="{% url 'patients:find_doctors' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> New Appointment
+    </a>
+</div>
+
+<!-- Tabs -->
+<div class="page-tabs">
+    <button class="page-tab active" onclick="switchApptTab(this, 'upcoming')">
+        <i class="fas fa-clock"></i> Upcoming (3)
+    </button>
+    <button class="page-tab" onclick="switchApptTab(this, 'completed')">
+        <i class="fas fa-check"></i> Completed (12)
+    </button>
+    <button class="page-tab" onclick="switchApptTab(this, 'cancelled')">
+        <i class="fas fa-times"></i> Cancelled (2)
+    </button>
+</div>
+
+<!-- Upcoming -->
+<div class="appt-tab-content" id="tab-upcoming">
+    <div class="appt-table-card">
+        <div class="appt-row appt-table-head">
+            <span>Doctor</span>
+            <span>Date & Time</span>
+            <span>Type</span>
+            <span>Status</span>
+            <span style="text-align:right">Actions</span>
+        </div>
+        {% for i in "123" %}
+        <div class="appt-row">
+            <div class="appt-doc-info">
+                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:10 }}" alt="">
+                <div class="appt-doc-info-text">
+                    <strong>Dr. Sharma #{{ forloop.counter }}</strong>
+                    <span>Cardiology</span>
+                </div>
+            </div>
+            <div>
+                <div style="font-weight:600;font-size:0.88rem">Mar {{ forloop.counter|add:3 }}, 2025</div>
+                <div style="font-size:0.78rem;color:var(--gray-500)">{{ forloop.counter|add:9 }}:00 AM</div>
+            </div>
+            <span class="badge badge-info">In-Person</span>
+            <span class="badge badge-success">Confirmed</span>
+            <div class="appt-row-actions">
+                <button class="btn btn-sm btn-outline" onclick="openApptDetail()">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-outline" style="color:var(--warning);border-color:var(--warning)">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline" style="color:var(--danger);border-color:var(--danger)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Completed -->
+<div class="appt-tab-content" id="tab-completed" style="display:none">
+    <div class="appt-table-card">
+        <div class="appt-row appt-table-head">
+            <span>Doctor</span>
+            <span>Date & Time</span>
+            <span>Type</span>
+            <span>Status</span>
+            <span style="text-align:right">Actions</span>
+        </div>
+        {% for i in "12345" %}
+        <div class="appt-row">
+            <div class="appt-doc-info">
+                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:20 }}" alt="">
+                <div class="appt-doc-info-text">
+                    <strong>Dr. Verma #{{ forloop.counter }}</strong>
+                    <span>Neurology</span>
+                </div>
+            </div>
+            <div>
+                <div style="font-weight:600;font-size:0.88rem">Feb {{ forloop.counter|add:10 }}, 2025</div>
+                <div style="font-size:0.78rem;color:var(--gray-500)">10:30 AM</div>
+            </div>
+            <span class="badge badge-info">In-Person</span>
+            <span class="badge badge-gray">Completed</span>
+            <div class="appt-row-actions">
+                <button class="btn btn-sm btn-outline">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="openReviewModal()">
+                    <i class="fas fa-star"></i> Review
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Cancelled -->
+<div class="appt-tab-content" id="tab-cancelled" style="display:none">
+    <div class="appt-table-card">
+        <div class="appt-row appt-table-head">
+            <span>Doctor</span><span>Date & Time</span>
+            <span>Type</span><span>Status</span>
+            <span style="text-align:right">Actions</span>
+        </div>
+        {% for i in "12" %}
+        <div class="appt-row">
+            <div class="appt-doc-info">
+                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:30 }}" alt="">
+                <div class="appt-doc-info-text">
+                    <strong>Dr. Patel #{{ forloop.counter }}</strong>
+                    <span>Dermatology</span>
+                </div>
+            </div>
+            <div>
+                <div style="font-weight:600;font-size:0.88rem">Jan {{ forloop.counter|add:15 }}, 2025</div>
+                <div style="font-size:0.78rem;color:var(--gray-500)">2:00 PM</div>
+            </div>
+            <span class="badge badge-info">In-Person</span>
+            <span class="badge badge-danger">Cancelled</span>
+            <div class="appt-row-actions">
+                <a href="{% url 'patients:find_doctors' %}" class="btn btn-sm btn-primary">Rebook</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Appointment Detail Modal -->
+<div class="modal-overlay" id="apptDetailModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Appointment Details</h3>
+            <button class="modal-close" onclick="closeModal('apptDetailModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="appt-detail-grid">
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-user-md"></i> Doctor</span>
+                    <span class="detail-val">Dr. Priya Sharma — Cardiology</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-calendar"></i> Date & Time</span>
+                    <span class="detail-val">March 5, 2025 — 2:00 PM</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-map-marker-alt"></i> Location</span>
+                    <span class="detail-val">Apollo Hospital, Mumbai</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-rupee-sign"></i> Fee Paid</span>
+                    <span class="detail-val" style="color:var(--secondary);font-weight:700">₹500</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-notes-medical"></i> Symptoms</span>
+                    <span class="detail-val">Chest pain, shortness of breath</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label"><i class="fas fa-info-circle"></i> Status</span>
+                    <span class="badge badge-success">Confirmed</span>
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:20px">
+                <button class="btn btn-outline w-full justify-center" onclick="closeModal('apptDetailModal')">Close</button>
+                <button class="btn btn-danger w-full justify-center">Cancel Appointment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal-overlay" id="reviewModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3>Rate Your Experience</h3>
+            <button class="modal-close" onclick="closeModal('reviewModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div style="text-align:center;margin-bottom:24px">
+                <img src="https://i.pravatar.cc/64?img=15" style="width:64px;height:64px;border-radius:50%;margin-bottom:12px">
+                <h4>Dr. Rohit Verma</h4>
+                <p style="color:var(--gray-500);font-size:0.85rem">Neurologist</p>
+            </div>
+            <div style="text-align:center;margin-bottom:20px">
+                <p style="font-weight:600;margin-bottom:12px">How was your experience?</p>
+                <div class="star-rating" id="starRating">
+                    {% for i in "12345" %}
+                    <i class="fas fa-star star-btn" data-val="{{ forloop.counter }}"
+                       style="font-size:2rem;color:var(--gray-300);cursor:pointer;transition:var(--transition);margin:0 4px"></i>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Your Review (optional)</label>
+                <textarea class="form-control" rows="3" placeholder="Share your experience..."></textarea>
+            </div>
+            <button class="btn btn-primary w-full justify-center">
+                <i class="fas fa-paper-plane"></i> Submit Review
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+function switchApptTab(btn, tab) {
+    document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.appt-tab-content').forEach(c => c.style.display = 'none');
+    btn.classList.add('active');
+    document.getElementById('tab-' + tab).style.display = 'block';
+}
+
+function openApptDetail() {
+    document.getElementById('apptDetailModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function openReviewModal() {
+    document.getElementById('reviewModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+// Star rating
+document.querySelectorAll('.star-btn').forEach(star => {
+    star.addEventListener('click', function() {
+        const val = this.dataset.val;
+        document.querySelectorAll('.star-btn').forEach((s, i) => {
+            s.style.color = i < val ? '#F59E0B' : 'var(--gray-300)';
+        });
+    });
+    star.addEventListener('mouseenter', function() {
+        const val = this.dataset.val;
+        document.querySelectorAll('.star-btn').forEach((s, i) => {
+            s.style.color = i < val ? '#F59E0B' : 'var(--gray-300)';
+        });
+    });
+});
+</script>
+{% endblock %}

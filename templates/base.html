@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lifeline Care{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Base CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <!-- Page-specific CSS -->
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible">
+            <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% else %}fa-info-circle{% endif %}"></i>
+            {{ message }}
+            <button class="alert-close" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    {% block content %}{% endblock %}
+
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+
+    <!-- Base JS -->
+    <script src="{% static 'js/base.js' %}"></script>
+
+    <!-- Page-specific JS -->
+    {% block extra_js %}{% endblock %}
+
+</body>
+</html>

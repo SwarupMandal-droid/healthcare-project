@@ -1,0 +1,110 @@
+{% extends 'doctors/base_doctor.html' %}
+{% load static %}
+
+{% block title %}Patient Documents — Doctor{% endblock %}
+{% block breadcrumb %}Patient Documents{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/doctor_dashboard.css' %}?v=1">
+{% endblock %}
+
+{% block dash_content %}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <h2 style="font-size:1.4rem">Patient Documents</h2>
+    <a href="{% url 'doctors:upload' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Upload New
+    </a>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar" style="margin-bottom:24px">
+    <div class="filter-group" style="flex:2">
+        <label><i class="fas fa-search"></i> Search Patient</label>
+        <input type="text" placeholder="Search by patient name or ID...">
+    </div>
+    <div class="filter-group">
+        <label>Document Type</label>
+        <select>
+            <option>All Types</option>
+            <option>Prescriptions</option>
+            <option>Lab Reports</option>
+            <option>Diet Charts</option>
+            <option>Medical Notes</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label>Date Range</label>
+        <select>
+            <option>All Time</option>
+            <option>This Week</option>
+            <option>This Month</option>
+        </select>
+    </div>
+    <button class="btn btn-primary" style="align-self:flex-end">
+        <i class="fas fa-filter"></i> Filter
+    </button>
+</div>
+
+<!-- Documents Table -->
+<div class="panel-card">
+    <div class="appt-row appt-table-head"
+         style="grid-template-columns:2fr 1.5fr 1fr 1fr 1fr">
+        <span>Patient</span>
+        <span>Document</span>
+        <span>Type</span>
+        <span>Date</span>
+        <span style="text-align:right">Actions</span>
+    </div>
+
+    {% for i in "12345678" %}
+    <div class="appt-row" style="grid-template-columns:2fr 1.5fr 1fr 1fr 1fr">
+        <div class="appt-doc-info">
+            <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:4 }}" alt="">
+            <div class="appt-doc-info-text">
+                <strong>Patient {{ forloop.counter }}</strong>
+                <span>ID: LC-P-00{{ forloop.counter }}</span>
+            </div>
+        </div>
+        <div style="font-size:0.88rem;font-weight:600;color:var(--gray-700)">
+            {% if forloop.counter == 1 %}Cardiac Prescription
+            {% elif forloop.counter == 2 %}CBC Lab Report
+            {% elif forloop.counter == 3 %}Weekly Diet Plan
+            {% elif forloop.counter == 4 %}Clinical Notes
+            {% elif forloop.counter == 5 %}ECG Report
+            {% elif forloop.counter == 6 %}BP Monitoring Chart
+            {% elif forloop.counter == 7 %}Follow-up Notes
+            {% else %}Cholesterol Report{% endif %}
+        </div>
+        <span class="badge
+            {% if forloop.counter == 1 or forloop.counter == 5 %}badge-info
+            {% elif forloop.counter == 2 or forloop.counter == 8 %}badge-success
+            {% elif forloop.counter == 3 %}badge-warning
+            {% else %}badge-gray{% endif %}">
+            {% if forloop.counter == 1 or forloop.counter == 5 %}Prescription
+            {% elif forloop.counter == 2 or forloop.counter == 8 %}Lab Report
+            {% elif forloop.counter == 3 %}Diet Chart
+            {% else %}Notes{% endif %}
+        </span>
+        <div style="font-size:0.85rem;color:var(--gray-600)">
+            Feb {{ forloop.counter|add:15 }}, 2025
+        </div>
+        <div class="appt-row-actions">
+            <button class="btn btn-sm btn-outline">
+                <i class="fas fa-eye"></i>
+            </button>
+            <button class="btn btn-sm btn-outline">
+                <i class="fas fa-download"></i>
+            </button>
+            <button class="btn btn-sm btn-outline"
+                    style="color:var(--danger);border-color:var(--danger)">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

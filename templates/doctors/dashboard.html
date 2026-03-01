@@ -1,0 +1,143 @@
+{% extends 'doctors/base_doctor.html' %}
+{% load static custom_filters %}
+
+{% block title %}Doctor Dashboard — Lifeline Care{% endblock %}
+{% block breadcrumb %}Dashboard Overview{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/doctor_dashboard.css' %}?v=1">
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- Welcome Banner -->
+<div class="welcome-banner"
+     style="background:linear-gradient(135deg,#065f46 0%,#059669 100%)">
+    <div class="welcome-text">
+        <h2>Good Morning, Dr. {{ request.user.first_name }}! 👋</h2>
+        <p>You have <strong>{{ today_appts.count }} appointments</strong>
+           scheduled for today.</p>
+    </div>
+    <a href="{% url 'doctors:appointments' %}" class="btn"
+       style="background:white;color:#059669;border-color:white;
+              position:relative;z-index:1">
+        <i class="fas fa-calendar-alt"></i> View Schedule
+    </a>
+</div>
+
+<!-- Stats -->
+<div class="dash-stats">
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#D1FAE5;color:var(--secondary)">
+            <i class="fas fa-calendar-day"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ today_appts.count }}</div>
+            <div class="dsc-label">Today's Appointments</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#EFF6FF;color:var(--primary)">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ upcoming }}</div>
+            <div class="dsc-label">Upcoming</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#FEF3C7;color:var(--accent)">
+            <i class="fas fa-check-double"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ completed }}</div>
+            <div class="dsc-label">Completed</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#FEE2E2;color:var(--danger)">
+            <i class="fas fa-rupee-sign"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">₹{{ doctor.consultation_fee }}</div>
+            <div class="dsc-label">Consultation Fee</div>
+        </div>
+    </div>
+</div>
+
+    <!-- Recent Activity + Quick Stats -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Weekly Stats -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-chart-bar"
+                       style="color:var(--primary);margin-right:8px"></i>Weekly Overview</h3>
+            </div>
+            <div class="panel-body">
+                <div class="week-bars">
+                    {% for day, count, max in week_data|default:"Mon,3,8|Tue,5,8|Wed,4,8|Thu,8,8|Fri,6,8|Sat,2,8|Sun,0,8"|split:"|" %}
+                    <div class="week-bar-item">
+                        <div class="week-bar-wrap">
+                            <div class="week-bar-fill"
+                                 style="height:{{ count }}0%"></div>
+                        </div>
+                        <span>{{ day }}</span>
+                    </div>
+                    {% empty %}
+                    <!-- Static fallback -->
+                    {% for item in "Mon,Tue,Wed,Thu,Fri,Sat,Sun"|split:"," %}
+                    <div class="week-bar-item">
+                        <div class="week-bar-wrap">
+                            <div class="week-bar-fill"
+                                 style="height:{{ forloop.counter }}0%"></div>
+                        </div>
+                        <span>
+                            {% if forloop.counter == 1 %}Mon
+                            {% elif forloop.counter == 2 %}Tue
+                            {% elif forloop.counter == 3 %}Wed
+                            {% elif forloop.counter == 4 %}Thu
+                            {% elif forloop.counter == 5 %}Fri
+                            {% elif forloop.counter == 6 %}Sat
+                            {% else %}Sun{% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Patients -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-users"
+                       style="color:var(--accent);margin-right:8px"></i>Recent Patients</h3>
+                <a href="{% url 'doctors:documents' %}">View all</a>
+            </div>
+            <div class="panel-body" style="padding:8px 22px 16px">
+                {% for i in "1234" %}
+                <div class="appt-item">
+                    <img src="https://i.pravatar.cc/44?img={{ forloop.counter|add:4 }}"
+                         class="appt-doc-img" alt="">
+                    <div class="appt-info">
+                        <div class="appt-doc-name">Patient {{ forloop.counter }}</div>
+                        <div class="appt-meta">
+                            <i class="fas fa-calendar"></i>
+                            Last visit: Feb {{ forloop.counter|add:18 }}, 2025
+                        </div>
+                    </div>
+                    <a href="{% url 'doctors:upload' %}"
+                       class="btn btn-outline btn-sm">
+                        <i class="fas fa-upload"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

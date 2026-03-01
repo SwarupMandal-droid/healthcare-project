@@ -1,0 +1,306 @@
+{% extends 'patients/base_patient.html' %}
+{% load static %}
+
+{% block title %}My Profile — Lifeline Care{% endblock %}
+{% block breadcrumb %}My Profile{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+{% endblock %}
+
+{% block dash_content %}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <h2 style="font-size:1.4rem">My Profile</h2>
+    <button class="btn btn-primary" id="saveProfileBtn" onclick="saveProfile()">
+        <i class="fas fa-save"></i> Save Changes
+    </button>
+</div>
+
+<div class="profile-grid">
+
+    <!-- Profile Sidebar -->
+    <div>
+        <div class="profile-sidebar-card">
+            <div class="profile-avatar-wrap">
+                <img src="https://i.pravatar.cc/100?img=5" alt="Profile" id="profileImg">
+                <label class="profile-avatar-edit" for="avatarInput">
+                    <i class="fas fa-camera"></i>
+                </label>
+                <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="previewAvatar(event)">
+            </div>
+            <div class="profile-name">Ananya Sharma</div>
+            <div class="profile-role"><i class="fas fa-circle" style="font-size:0.5rem"></i> Patient</div>
+
+            <div class="profile-stats">
+                <div style="text-align:center">
+                    <div class="profile-stat-val">12</div>
+                    <div class="profile-stat-lbl">Visits</div>
+                </div>
+                <div style="text-align:center">
+                    <div class="profile-stat-val">5</div>
+                    <div class="profile-stat-lbl">Doctors</div>
+                </div>
+                <div style="text-align:center">
+                    <div class="profile-stat-val">8</div>
+                    <div class="profile-stat-lbl">Docs</div>
+                </div>
+            </div>
+
+            <div style="width:100%">
+                <div class="detail-row" style="padding:10px 0">
+                    <span class="detail-label"><i class="fas fa-tint"></i> Blood Group</span>
+                    <span class="badge badge-danger">B+</span>
+                </div>
+                <div class="detail-row" style="padding:10px 0">
+                    <span class="detail-label"><i class="fas fa-birthday-cake"></i> Age</span>
+                    <span class="detail-val">28 years</span>
+                </div>
+                <div class="detail-row" style="padding:10px 0;border-bottom:none">
+                    <span class="detail-label"><i class="fas fa-venus-mars"></i> Gender</span>
+                    <span class="detail-val">Female</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Settings Card -->
+        <div class="panel-card" style="margin-top:20px">
+            <div class="panel-header">
+                <h3><i class="fas fa-cog" style="color:var(--gray-500);margin-right:8px"></i>Account Settings</h3>
+            </div>
+            <div class="panel-body" style="display:flex;flex-direction:column;gap:10px">
+                <button class="btn btn-outline w-full" style="justify-content:flex-start;gap:12px" onclick="openModal('changePwModal')">
+                    <i class="fas fa-lock" style="color:var(--primary)"></i> Change Password
+                </button>
+                <button class="btn btn-outline w-full" style="justify-content:flex-start;gap:12px">
+                    <i class="fas fa-bell" style="color:var(--accent)"></i> Notification Preferences
+                </button>
+                <button class="btn btn-outline w-full" style="justify-content:flex-start;gap:12px;color:var(--danger);border-color:var(--danger)" onclick="openModal('deleteModal')">
+                    <i class="fas fa-trash-alt"></i> Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Form -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Personal Details -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-user" style="color:var(--primary);margin-right:8px"></i>Personal Information</h3>
+            </div>
+            <div class="panel-body">
+                <div class="form-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-control" value="Ananya">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" class="form-control" value="Sharma">
+                    </div>
+                </div>
+                <div class="form-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" class="form-control" value="1997-03-15">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Gender</label>
+                        <select class="form-control">
+                            <option selected>Female</option>
+                            <option>Male</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" value="ananya@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" value="+91 98765 43210">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address</label>
+                    <input type="text" class="form-control" value="42, Park Street, Bandra West, Mumbai — 400050">
+                </div>
+            </div>
+        </div>
+
+        <!-- Medical Information -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-heartbeat" style="color:var(--danger);margin-right:8px"></i>Medical Information</h3>
+            </div>
+            <div class="panel-body">
+                <div class="form-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group">
+                        <label class="form-label">Blood Group</label>
+                        <select class="form-control">
+                            <option>A+</option><option>A-</option>
+                            <option selected>B+</option><option>B-</option>
+                            <option>AB+</option><option>AB-</option>
+                            <option>O+</option><option>O-</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Height (cm)</label>
+                        <input type="number" class="form-control" value="162">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Known Allergies</label>
+                    <input type="text" class="form-control" placeholder="e.g. Penicillin, Dust, Peanuts" value="Penicillin">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Chronic Conditions</label>
+                    <input type="text" class="form-control" placeholder="e.g. Diabetes, Hypertension" value="Mild Hypertension">
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Current Medications</label>
+                    <textarea class="form-control" rows="2" placeholder="List any ongoing medications...">Tab. Metoprolol 25mg — once daily</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergency Contact -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-phone-alt" style="color:var(--secondary);margin-right:8px"></i>Emergency Contact</h3>
+            </div>
+            <div class="panel-body">
+                <div class="form-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div class="form-group">
+                        <label class="form-label">Contact Name</label>
+                        <input type="text" class="form-control" value="Rajan Sharma">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Relationship</label>
+                        <select class="form-control">
+                            <option selected>Father</option>
+                            <option>Mother</option>
+                            <option>Spouse</option>
+                            <option>Sibling</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label class="form-label">Emergency Phone</label>
+                    <input type="tel" class="form-control" value="+91 91234 56789">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="changePwModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-lock" style="color:var(--primary);margin-right:8px"></i>Change Password</h3>
+            <button class="modal-close" onclick="closeModal('changePwModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Current Password</label>
+                <input type="password" class="form-control" placeholder="Enter current password">
+            </div>
+            <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input type="password" class="form-control" placeholder="Min. 8 characters">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirm New Password</label>
+                <input type="password" class="form-control" placeholder="Re-enter new password">
+            </div>
+            <div style="display:flex;gap:10px">
+                <button class="btn btn-outline w-full justify-center" onclick="closeModal('changePwModal')">Cancel</button>
+                <button class="btn btn-primary w-full justify-center">
+                    <i class="fas fa-save"></i> Update Password
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3 style="color:var(--danger)"><i class="fas fa-exclamation-triangle" style="margin-right:8px"></i>Delete Account</h3>
+            <button class="modal-close" onclick="closeModal('deleteModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <div style="text-align:center;padding:16px 0 24px">
+                <div style="width:64px;height:64px;background:#FEE2E2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:1.5rem;color:var(--danger)">
+                    <i class="fas fa-trash-alt"></i>
+                </div>
+                <h4 style="margin-bottom:8px">Are you absolutely sure?</h4>
+                <p style="color:var(--gray-500);font-size:0.9rem">This will permanently delete your account, all appointments, and documents. This action cannot be undone.</p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Type <strong>DELETE</strong> to confirm</label>
+                <input type="text" class="form-control" placeholder="Type DELETE here" id="deleteConfirmInput">
+            </div>
+            <div style="display:flex;gap:10px">
+                <button class="btn btn-outline w-full justify-center" onclick="closeModal('deleteModal')">Cancel</button>
+                <button class="btn btn-danger w-full justify-center" id="deleteConfirmBtn" disabled>
+                    <i class="fas fa-trash-alt"></i> Delete My Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+function previewAvatar(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('profileImg').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function saveProfile() {
+    const btn = document.getElementById('saveProfileBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    btn.disabled = true;
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+        btn.style.background = 'var(--secondary)';
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+            btn.style.background = '';
+            btn.disabled = false;
+        }, 2000);
+    }, 1200);
+}
+
+function openModal(id) {
+    document.getElementById(id).classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+// Delete confirmation
+const deleteInput = document.getElementById('deleteConfirmInput');
+const deleteBtn   = document.getElementById('deleteConfirmBtn');
+if (deleteInput) {
+    deleteInput.addEventListener('input', function () {
+        deleteBtn.disabled = this.value !== 'DELETE';
+    });
+}
+</script>
+{% endblock %}

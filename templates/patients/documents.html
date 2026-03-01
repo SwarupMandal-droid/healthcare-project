@@ -1,0 +1,360 @@
+{% extends 'patients/base_patient.html' %}
+{% load static %}
+
+{% block title %}My Documents — Lifeline Care{% endblock %}
+{% block breadcrumb %}My Documents{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+{% endblock %}
+
+{% block dash_content %}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <h2 style="font-size:1.4rem">My Documents</h2>
+    <div style="display:flex;gap:10px">
+        <select class="form-control" style="width:auto;padding:9px 16px">
+            <option>All Types</option>
+            <option>Prescriptions</option>
+            <option>Lab Reports</option>
+            <option>Diet Charts</option>
+            <option>Medical Notes</option>
+        </select>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="dash-stats" style="margin-bottom:28px">
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#EFF6FF;color:var(--primary)">
+            <i class="fas fa-file-prescription"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">5</div>
+            <div class="dsc-label">Prescriptions</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#D1FAE5;color:var(--secondary)">
+            <i class="fas fa-flask"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">3</div>
+            <div class="dsc-label">Lab Reports</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#FEF3C7;color:var(--accent)">
+            <i class="fas fa-utensils"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">2</div>
+            <div class="dsc-label">Diet Charts</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#FEE2E2;color:var(--danger)">
+            <i class="fas fa-notes-medical"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">3</div>
+            <div class="dsc-label">Medical Notes</div>
+        </div>
+    </div>
+</div>
+
+<!-- Documents Grid -->
+<div class="documents-grid">
+
+    <!-- Prescription -->
+    <div class="doc-card" onclick="openDocPreview('prescription')">
+        <div class="doc-card-icon" style="background:#EFF6FF;color:var(--primary)">
+            <i class="fas fa-file-prescription"></i>
+        </div>
+        <div class="doc-card-name">Prescription — Cardiology</div>
+        <div class="doc-card-meta">
+            <i class="fas fa-user-md"></i> Dr. Priya Sharma &nbsp;|&nbsp;
+            <i class="fas fa-calendar"></i> Feb 20, 2025
+        </div>
+        <div class="doc-card-actions">
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openDocPreview('prescription')">
+                <i class="fas fa-eye"></i> Preview
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation()">
+                <i class="fas fa-download"></i> Download
+            </button>
+        </div>
+    </div>
+
+    <!-- Lab Report -->
+    <div class="doc-card" onclick="openDocPreview('lab')">
+        <div class="doc-card-icon" style="background:#D1FAE5;color:var(--secondary)">
+            <i class="fas fa-flask"></i>
+        </div>
+        <div class="doc-card-name">Blood Test Report</div>
+        <div class="doc-card-meta">
+            <i class="fas fa-user-md"></i> Dr. Rohit Verma &nbsp;|&nbsp;
+            <i class="fas fa-calendar"></i> Feb 15, 2025
+        </div>
+        <div class="doc-card-actions">
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openDocPreview('lab')">
+                <i class="fas fa-eye"></i> Preview
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation()">
+                <i class="fas fa-download"></i> Download
+            </button>
+        </div>
+    </div>
+
+    <!-- Diet Chart -->
+    <div class="doc-card" onclick="openDocPreview('diet')">
+        <div class="doc-card-icon" style="background:#FEF3C7;color:var(--accent)">
+            <i class="fas fa-utensils"></i>
+        </div>
+        <div class="doc-card-name">Weekly Diet Chart</div>
+        <div class="doc-card-meta">
+            <i class="fas fa-user-md"></i> Dr. Priya Sharma &nbsp;|&nbsp;
+            <i class="fas fa-calendar"></i> Feb 20, 2025
+        </div>
+        <div class="doc-card-actions">
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openDocPreview('diet')">
+                <i class="fas fa-eye"></i> Preview
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation()">
+                <i class="fas fa-download"></i> Download
+            </button>
+        </div>
+    </div>
+
+    <!-- Medical Note -->
+    <div class="doc-card" onclick="openDocPreview('note')">
+        <div class="doc-card-icon" style="background:#FEE2E2;color:var(--danger)">
+            <i class="fas fa-notes-medical"></i>
+        </div>
+        <div class="doc-card-name">Medical Notes — Neurology</div>
+        <div class="doc-card-meta">
+            <i class="fas fa-user-md"></i> Dr. Rohit Verma &nbsp;|&nbsp;
+            <i class="fas fa-calendar"></i> Jan 30, 2025
+        </div>
+        <div class="doc-card-actions">
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openDocPreview('note')">
+                <i class="fas fa-eye"></i> Preview
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation()">
+                <i class="fas fa-download"></i> Download
+            </button>
+        </div>
+    </div>
+
+    <!-- X-Ray -->
+    <div class="doc-card">
+        <div class="doc-card-icon" style="background:#F3E8FF;color:#7C3AED">
+            <i class="fas fa-x-ray"></i>
+        </div>
+        <div class="doc-card-name">Chest X-Ray Report</div>
+        <div class="doc-card-meta">
+            <i class="fas fa-user-md"></i> Dr. Arjun Mehta &nbsp;|&nbsp;
+            <i class="fas fa-calendar"></i> Jan 10, 2025
+        </div>
+        <div class="doc-card-actions">
+            <button class="btn btn-outline btn-sm">
+                <i class="fas fa-eye"></i> Preview
+            </button>
+            <button class="btn btn-primary btn-sm">
+                <i class="fas fa-download"></i> Download
+            </button>
+        </div>
+    </div>
+
+    <!-- ECG -->
+    <div class="doc-card">
+        <div class="doc-card-icon" style="background:#ECFDF5;color:#059669">
+            <i class="fas fa-heartbeat"></i>
+        </div>
+        <div class="doc-card-name">ECG Report</div>
+        <div class="doc-card-meta">
+            <i class="fas fa-user-md"></i> Dr. Priya Sharma &nbsp;|&nbsp;
+            <i class="fas fa-calendar"></i> Dec 28, 2024
+        </div>
+        <div class="doc-card-actions">
+            <button class="btn btn-outline btn-sm">
+                <i class="fas fa-eye"></i> Preview
+            </button>
+            <button class="btn btn-primary btn-sm">
+                <i class="fas fa-download"></i> Download
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Document Preview Modal -->
+<div class="modal-overlay" id="docPreviewModal">
+    <div class="modal-box modal-lg">
+        <div class="modal-header">
+            <h3 id="docPreviewTitle">Document Preview</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-download"></i> Download
+                </button>
+                <button class="modal-close" onclick="closeModal('docPreviewModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div id="docPreviewContent" class="doc-preview-body"></div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+const docPreviews = {
+    prescription: {
+        title: 'Prescription — Cardiology',
+        html: `
+            <div class="doc-preview-sheet">
+                <div class="doc-preview-header">
+                    <div>
+                        <h3 style="color:var(--primary)">Dr. Priya Sharma</h3>
+                        <p style="color:var(--gray-500);font-size:0.85rem">MBBS, MD (Cardiology) | Reg. No. MCI-12345</p>
+                        <p style="color:var(--gray-500);font-size:0.85rem">Apollo Hospital, Mumbai</p>
+                    </div>
+                    <div style="text-align:right">
+                        <p style="font-size:0.82rem;color:var(--gray-500)">Date: Feb 20, 2025</p>
+                        <p style="font-size:0.82rem;color:var(--gray-500)">Patient: Ananya Sharma</p>
+                    </div>
+                </div>
+                <hr style="margin:16px 0;border-color:var(--gray-200)">
+                <h4 style="margin-bottom:16px;font-size:1rem">℞ Prescription</h4>
+                <div class="rx-item">
+                    <p class="rx-name">1. Tab. Ecosprin 75mg</p>
+                    <p class="rx-dose">Once daily after food — 30 days</p>
+                </div>
+                <div class="rx-item">
+                    <p class="rx-name">2. Tab. Atorvastatin 10mg</p>
+                    <p class="rx-dose">Once at night — 30 days</p>
+                </div>
+                <div class="rx-item">
+                    <p class="rx-name">3. Tab. Metoprolol 25mg</p>
+                    <p class="rx-dose">Twice daily — 30 days</p>
+                </div>
+                <div style="margin-top:20px;padding:12px;background:var(--gray-50);border-radius:var(--radius)">
+                    <p style="font-size:0.85rem;font-weight:600;margin-bottom:4px">Advice:</p>
+                    <p style="font-size:0.85rem;color:var(--gray-600)">Avoid salt, follow low-fat diet. Exercise 30 min daily. Follow up after 1 month.</p>
+                </div>
+            </div>`
+    },
+    lab: {
+        title: 'Blood Test Report',
+        html: `
+            <div class="doc-preview-sheet">
+                <div class="doc-preview-header">
+                    <div>
+                        <h3 style="color:var(--primary)">Lifeline Diagnostics</h3>
+                        <p style="color:var(--gray-500);font-size:0.85rem">Accredited Laboratory | NABL Certified</p>
+                    </div>
+                    <div style="text-align:right">
+                        <p style="font-size:0.82rem;color:var(--gray-500)">Date: Feb 15, 2025</p>
+                        <p style="font-size:0.82rem;color:var(--gray-500)">Patient: Ananya Sharma</p>
+                    </div>
+                </div>
+                <hr style="margin:16px 0">
+                <h4 style="margin-bottom:16px">Complete Blood Count (CBC)</h4>
+                <table style="width:100%;font-size:0.85rem;border-collapse:collapse">
+                    <thead>
+                        <tr style="background:var(--gray-50)">
+                            <th style="padding:10px;text-align:left;border:1px solid var(--gray-200)">Test</th>
+                            <th style="padding:10px;text-align:center;border:1px solid var(--gray-200)">Result</th>
+                            <th style="padding:10px;text-align:center;border:1px solid var(--gray-200)">Normal Range</th>
+                            <th style="padding:10px;text-align:center;border:1px solid var(--gray-200)">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding:10px;border:1px solid var(--gray-200)">Hemoglobin</td>
+                            <td style="padding:10px;text-align:center;border:1px solid var(--gray-200)">12.5 g/dL</td>
+                            <td style="padding:10px;text-align:center;border:1px solid var(--gray-200)">12–16 g/dL</td>
+                            <td style="padding:10px;text-align:center;border:1px solid var(--gray-200)"><span class="badge badge-success">Normal</span></td>
+                        </tr>
+                        <tr style="background:var(--gray-50)">
+                            <td style="padding:10px;border:1px solid var(--gray-200)">WBC Count</td>
+                            <td style="padding:10px;text-align:center;border:1px solid var(--gray-200)">9,500/μL</td>
+                            <td style="padding:10px;text-align:center;border:1px solid var(--gray-200)">4,000–11,000</td>
+                            <td style="padding:10px;text-align:center;border:1px solid var(--gray-200)"><span class="badge badge-success">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px;border:1px solid var(--gray-200)">Platelets</td>
+                            <td style="padding:10px;text-align:center;border:1px solid var(--gray-200)">1,40,000</td>
+                            <td style="padding:10px;text-align:center;border:1px solid var(--gray-200)">1.5L–4.5L</td>
+                            <td style="padding:10px;text-align:center;border:1px solid var(--gray-200)"><span class="badge badge-warning">Low</span></td>
+                        </tr>
+                        <tr style="background:var(--gray-50)">
+                            <td style="padding:10px;border:1px solid var(--gray-200)">Blood Sugar (F)</td>
+                            <td style="padding:10px;text-align:center;border:1px solid var(--gray-200)">92 mg/dL</td>
+                            <td style="padding:10px;text-align:center;border:1px solid var(--gray-200)">70–100 mg/dL</td>
+                            <td style="padding:10px;text-align:center;border:1px solid var(--gray-200)"><span class="badge badge-success">Normal</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>`
+    },
+    diet: {
+        title: 'Weekly Diet Chart',
+        html: `
+            <div class="doc-preview-sheet">
+                <div class="doc-preview-header">
+                    <div>
+                        <h3 style="color:var(--primary)">Diet Plan — Ananya Sharma</h3>
+                        <p style="color:var(--gray-500);font-size:0.85rem">Prescribed by Dr. Priya Sharma | Feb 20, 2025</p>
+                    </div>
+                </div>
+                <hr style="margin:16px 0">
+                <div style="display:grid;gap:12px">
+                    <div class="diet-row"><span class="diet-time">🌅 Early Morning (6–7 AM)</span><span class="diet-meal">Warm lemon water + 5 soaked almonds</span></div>
+                    <div class="diet-row"><span class="diet-time">🍳 Breakfast (8–9 AM)</span><span class="diet-meal">Oats porridge / 2 idli with sambar + 1 glass skimmed milk</span></div>
+                    <div class="diet-row"><span class="diet-time">🍎 Mid Morning (11 AM)</span><span class="diet-meal">1 seasonal fruit (apple/pear/guava)</span></div>
+                    <div class="diet-row"><span class="diet-time">🍱 Lunch (1–2 PM)</span><span class="diet-meal">2 chapati + sabzi + dal + salad + 1 cup curd</span></div>
+                    <div class="diet-row"><span class="diet-time">☕ Evening (4–5 PM)</span><span class="diet-meal">Green tea + roasted chana / sprouts</span></div>
+                    <div class="diet-row"><span class="diet-time">🌙 Dinner (7–8 PM)</span><span class="diet-meal">1 chapati + light sabzi + soup</span></div>
+                </div>
+                <div style="margin-top:16px;padding:12px;background:#D1FAE5;border-radius:var(--radius)">
+                    <p style="font-size:0.85rem;color:#065F46"><strong>Note:</strong> Avoid oily, fried, and processed foods. Drink 8–10 glasses of water daily. No salt after 7 PM.</p>
+                </div>
+            </div>`
+    },
+    note: {
+        title: 'Medical Notes — Neurology',
+        html: `
+            <div class="doc-preview-sheet">
+                <div class="doc-preview-header">
+                    <div>
+                        <h3 style="color:var(--primary)">Clinical Notes</h3>
+                        <p style="color:var(--gray-500);font-size:0.85rem">Dr. Rohit Verma — Neurologist | Jan 30, 2025</p>
+                    </div>
+                </div>
+                <hr style="margin:16px 0">
+                <div style="font-size:0.9rem;color:var(--gray-700);line-height:1.8">
+                    <p><strong>Chief Complaint:</strong> Recurring headaches, mild dizziness</p>
+                    <p style="margin-top:12px"><strong>Diagnosis:</strong> Tension-type headache, mild cervical spondylosis</p>
+                    <p style="margin-top:12px"><strong>Observations:</strong> Patient reports headaches 3–4 times/week, worse in the evening. No visual disturbances. BP 120/80 mmHg. Neurological exam normal.</p>
+                    <p style="margin-top:12px"><strong>Treatment Plan:</strong> Tab. Paracetamol 500mg SOS. Physiotherapy for neck — 10 sessions. Screen time reduction advised.</p>
+                    <p style="margin-top:12px"><strong>Follow Up:</strong> After 3 weeks or earlier if symptoms worsen.</p>
+                </div>
+            </div>`
+    }
+};
+
+function openDocPreview(type) {
+    const data = docPreviews[type];
+    if (!data) return;
+    document.getElementById('docPreviewTitle').textContent = data.title;
+    document.getElementById('docPreviewContent').innerHTML = data.html;
+    document.getElementById('docPreviewModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+</script>
+{% endblock %}

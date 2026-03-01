@@ -1,0 +1,334 @@
+/* =============================================
+   LIFELINE CARE — DOCTOR DASHBOARD STYLES
+   ============================================= */
+
+/* ---- Schedule Items ---- */
+.schedule-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--gray-100);
+    transition: var(--transition);
+}
+.schedule-item:hover { background: var(--gray-50); }
+
+.schedule-time {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 44px;
+}
+.schedule-time span:first-child {
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--gray-900);
+    line-height: 1;
+}
+.schedule-time span:last-child {
+    font-size: 0.68rem;
+    color: var(--gray-400);
+    font-weight: 600;
+}
+
+.schedule-bar {
+    width: 4px;
+    height: 40px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.schedule-bar.confirmed { background: var(--secondary); }
+.schedule-bar.pending   { background: var(--accent); }
+.schedule-bar.cancelled { background: var(--danger); }
+
+.schedule-info { flex: 1; }
+.schedule-patient {
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 3px;
+}
+.schedule-meta {
+    font-size: 0.78rem;
+    color: var(--gray-500);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.schedule-meta i { color: var(--primary); }
+
+/* ---- Weekly Bars ---- */
+.week-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 100px;
+    padding-bottom: 8px;
+}
+
+.week-bar-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+.week-bar-wrap {
+    width: 100%;
+    background: var(--gray-100);
+    border-radius: 6px 6px 0 0;
+    height: 80px;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+}
+
+.week-bar-fill {
+    width: 100%;
+    background: linear-gradient(180deg, var(--primary) 0%, #60a5fa 100%);
+    border-radius: 6px 6px 0 0;
+    transition: height 1s ease;
+    min-height: 4px;
+}
+
+.week-bar-item span {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--gray-500);
+}
+
+/* ---- Upload Layout ---- */
+.upload-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+/* Patient Search Results */
+.patient-result-list {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.patient-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: var(--transition);
+    border-bottom: 1px solid var(--gray-100);
+}
+.patient-result-item:last-child { border-bottom: none; }
+.patient-result-item:hover { background: var(--primary-light); }
+.patient-result-item img {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Selected Patient Card */
+.selected-patient-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--primary-light);
+    border: 1.5px solid var(--primary);
+    border-radius: var(--radius);
+}
+.selected-patient-card img {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+}
+
+/* Document Type Grid */
+.doc-type-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.doc-type-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 10px;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    text-align: center;
+}
+.doc-type-card i { font-size: 1.3rem; }
+.doc-type-card:hover { border-color: var(--primary); color: var(--primary); }
+.doc-type-card.active {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+/* Upload Zone */
+.upload-zone {
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--radius-lg);
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--gray-50);
+}
+.upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--primary);
+    background: var(--primary-light);
+}
+.upload-zone-icon {
+    font-size: 2.5rem;
+    color: var(--gray-300);
+    margin-bottom: 12px;
+    transition: var(--transition);
+}
+.upload-zone:hover .upload-zone-icon { color: var(--primary); }
+.upload-zone h4 { margin-bottom: 6px; color: var(--gray-700); }
+.upload-zone p  { color: var(--gray-500); font-size: 0.88rem; }
+
+/* File List */
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--gray-50);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    border: 1px solid var(--gray-200);
+}
+.file-item-icon {
+    background: var(--primary);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 4px 6px;
+    border-radius: 5px;
+    flex-shrink: 0;
+}
+.file-item-info { flex: 1; }
+.file-item-info p  { font-size: 0.85rem; font-weight: 600; margin-bottom: 2px; }
+.file-item-info span { font-size: 0.75rem; color: var(--gray-400); }
+
+/* Uploaded Docs List */
+.uploaded-doc-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--gray-100);
+    transition: var(--transition);
+}
+.uploaded-doc-item:hover { background: var(--gray-50); }
+.uploaded-doc-item:last-child { border-bottom: none; }
+
+.uploaded-doc-icon {
+    width: 40px; height: 40px;
+    border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.rx-icon   { background:#EFF6FF; color:var(--primary); }
+.lab-icon  { background:#D1FAE5; color:var(--secondary); }
+.diet-icon { background:#FEF3C7; color:var(--accent); }
+.note-icon { background:#FEE2E2; color:var(--danger); }
+
+.uploaded-doc-info { flex: 1; }
+.uploaded-doc-name { font-weight: 700; font-size: 0.88rem; margin-bottom: 3px; }
+.uploaded-doc-meta { font-size: 0.75rem; color: var(--gray-400); }
+.uploaded-doc-actions { display: flex; gap: 6px; }
+
+/* ---- Verified Badge ---- */
+.verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #D1FAE5;
+    color: #065F46;
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+.verified-badge i { color: #10B981; }
+
+/* ---- Availability Grid ---- */
+.availability-grid { display: flex; flex-direction: column; gap: 12px; }
+
+.avail-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--gray-100);
+}
+.avail-row:last-child { border-bottom: none; }
+.avail-row input[type="time"] {
+    border: 1.5px solid var(--gray-200);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    font-size: 0.88rem;
+    color: var(--gray-700);
+    transition: var(--transition);
+}
+.avail-row input[type="time"]:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.avail-row input[type="time"]:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+/* ---- Reviews ---- */
+.review-item {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--gray-100);
+}
+.review-item:last-child { border-bottom: none; }
+
+.review-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+.review-header img {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.review-text {
+    font-size: 0.88rem;
+    color: var(--gray-600);
+    line-height: 1.65;
+    font-style: italic;
+    padding-left: 48px;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 1024px) {
+    .upload-layout { grid-template-columns: 1fr; }
+    .doc-type-grid { grid-template-columns: repeat(2,1fr); }
+}
+
+@media (max-width: 768px) {
+    .avail-row { flex-wrap: wrap; }
+    .doc-type-grid { grid-template-columns: repeat(4,1fr); }
+}

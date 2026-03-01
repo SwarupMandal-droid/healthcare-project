@@ -1,0 +1,275 @@
+{% extends 'patients/base_patient.html' %}
+{% load static %}
+
+{% block title %}Payment History — Lifeline Care{% endblock %}
+{% block breadcrumb %}Payment History{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+{% endblock %}
+
+{% block dash_content %}
+
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+    <h2 style="font-size:1.4rem">Payment History</h2>
+    <button class="btn btn-outline">
+        <i class="fas fa-download"></i> Export All
+    </button>
+</div>
+
+<!-- Summary Cards -->
+<div class="dash-stats" style="margin-bottom:28px">
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#EFF6FF;color:var(--primary)">
+            <i class="fas fa-rupee-sign"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">₹4,200</div>
+            <div class="dsc-label">Total Spent</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#D1FAE5;color:var(--secondary)">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">7</div>
+            <div class="dsc-label">Successful Payments</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#FEF3C7;color:var(--accent)">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">₹1,000</div>
+            <div class="dsc-label">This Month</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#FEE2E2;color:var(--danger)">
+            <i class="fas fa-undo"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">₹500</div>
+            <div class="dsc-label">Refunded</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar" style="margin-bottom:20px">
+    <div class="filter-group">
+        <label>From Date</label>
+        <input type="date" class="form-control">
+    </div>
+    <div class="filter-group">
+        <label>To Date</label>
+        <input type="date" class="form-control">
+    </div>
+    <div class="filter-group">
+        <label>Status</label>
+        <select class="form-control">
+            <option>All</option>
+            <option>Success</option>
+            <option>Failed</option>
+            <option>Refunded</option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label>Payment Method</label>
+        <select class="form-control">
+            <option>All Methods</option>
+            <option>UPI</option>
+            <option>Card</option>
+        </select>
+    </div>
+    <button class="btn btn-primary" style="align-self:flex-end">
+        <i class="fas fa-filter"></i> Apply
+    </button>
+</div>
+
+<!-- Payment Table -->
+<div class="panel-card">
+    <div class="payment-row payment-head">
+        <span>Date</span>
+        <span>Doctor</span>
+        <span>Amount</span>
+        <span>Method</span>
+        <span>Status</span>
+        <span>Invoice</span>
+    </div>
+
+    <div class="payment-row">
+        <div>
+            <div style="font-weight:600;font-size:0.88rem">Feb 20, 2025</div>
+            <div style="font-size:0.75rem;color:var(--gray-400)">10:32 AM</div>
+        </div>
+        <div class="appt-doc-info">
+            <img src="https://i.pravatar.cc/36?img=12" alt="" style="width:36px;height:36px;border-radius:50%">
+            <div>
+                <div style="font-weight:600;font-size:0.85rem">Dr. Priya Sharma</div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">Cardiology</div>
+            </div>
+        </div>
+        <div style="font-weight:700;color:var(--gray-900)">₹500</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:0.82rem">
+            <i class="fas fa-mobile-alt" style="color:var(--primary)"></i> UPI
+        </div>
+        <span class="badge badge-success">Success</span>
+        <button class="btn btn-outline btn-sm" onclick="openInvoice()">
+            <i class="fas fa-file-invoice"></i>
+        </button>
+    </div>
+
+    <div class="payment-row">
+        <div>
+            <div style="font-weight:600;font-size:0.88rem">Feb 15, 2025</div>
+            <div style="font-size:0.75rem;color:var(--gray-400)">2:15 PM</div>
+        </div>
+        <div class="appt-doc-info">
+            <img src="https://i.pravatar.cc/36?img=15" alt="" style="width:36px;height:36px;border-radius:50%">
+            <div>
+                <div style="font-weight:600;font-size:0.85rem">Dr. Rohit Verma</div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">Neurology</div>
+            </div>
+        </div>
+        <div style="font-weight:700;color:var(--gray-900)">₹700</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:0.82rem">
+            <i class="fas fa-credit-card" style="color:var(--secondary)"></i> Card
+        </div>
+        <span class="badge badge-success">Success</span>
+        <button class="btn btn-outline btn-sm" onclick="openInvoice()">
+            <i class="fas fa-file-invoice"></i>
+        </button>
+    </div>
+
+    <div class="payment-row">
+        <div>
+            <div style="font-weight:600;font-size:0.88rem">Jan 30, 2025</div>
+            <div style="font-size:0.75rem;color:var(--gray-400)">11:00 AM</div>
+        </div>
+        <div class="appt-doc-info">
+            <img src="https://i.pravatar.cc/36?img=20" alt="" style="width:36px;height:36px;border-radius:50%">
+            <div>
+                <div style="font-weight:600;font-size:0.85rem">Dr. Sana Mirza</div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">Dermatology</div>
+            </div>
+        </div>
+        <div style="font-weight:700;color:var(--gray-900)">₹500</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:0.82rem">
+            <i class="fas fa-mobile-alt" style="color:var(--primary)"></i> UPI
+        </div>
+        <span class="badge badge-danger">Refunded</span>
+        <button class="btn btn-outline btn-sm" onclick="openInvoice()">
+            <i class="fas fa-file-invoice"></i>
+        </button>
+    </div>
+
+    <div class="payment-row">
+        <div>
+            <div style="font-weight:600;font-size:0.88rem">Jan 10, 2025</div>
+            <div style="font-size:0.75rem;color:var(--gray-400)">4:45 PM</div>
+        </div>
+        <div class="appt-doc-info">
+            <img src="https://i.pravatar.cc/36?img=33" alt="" style="width:36px;height:36px;border-radius:50%">
+            <div>
+                <div style="font-weight:600;font-size:0.85rem">Dr. Arjun Mehta</div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">Orthopedics</div>
+            </div>
+        </div>
+        <div style="font-weight:700;color:var(--gray-900)">₹800</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:0.82rem">
+            <i class="fas fa-credit-card" style="color:var(--secondary)"></i> Card
+        </div>
+        <span class="badge badge-warning">Pending</span>
+        <button class="btn btn-outline btn-sm">
+            <i class="fas fa-file-invoice"></i>
+        </button>
+    </div>
+
+</div>
+
+<!-- Invoice Modal -->
+<div class="modal-overlay" id="invoiceModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <h3><i class="fas fa-file-invoice" style="color:var(--primary);margin-right:8px"></i>Invoice</h3>
+            <div style="display:flex;gap:8px;align-items:center">
+                <button class="btn btn-primary btn-sm">
+                    <i class="fas fa-download"></i> Download PDF
+                </button>
+                <button class="modal-close" onclick="closeModal('invoiceModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="modal-body">
+            <div class="invoice-sheet">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px">
+                    <div>
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                            <div class="logo-icon" style="width:32px;height:32px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.9rem">
+                                <i class="fas fa-heartbeat"></i>
+                            </div>
+                            <strong style="font-size:1.1rem">Lifeline Care</strong>
+                        </div>
+                        <p style="font-size:0.8rem;color:var(--gray-500)">Invoice #LC-2025-0042</p>
+                    </div>
+                    <span class="badge badge-success" style="font-size:0.85rem;padding:6px 14px">PAID</span>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+                    <div style="background:var(--gray-50);padding:14px;border-radius:var(--radius)">
+                        <p style="font-size:0.75rem;color:var(--gray-500);margin-bottom:6px">BILLED TO</p>
+                        <p style="font-weight:700;font-size:0.9rem">Ananya Sharma</p>
+                        <p style="font-size:0.82rem;color:var(--gray-500)">ananya@example.com</p>
+                    </div>
+                    <div style="background:var(--gray-50);padding:14px;border-radius:var(--radius)">
+                        <p style="font-size:0.75rem;color:var(--gray-500);margin-bottom:6px">DOCTOR</p>
+                        <p style="font-weight:700;font-size:0.9rem">Dr. Priya Sharma</p>
+                        <p style="font-size:0.82rem;color:var(--gray-500)">Cardiologist</p>
+                    </div>
+                </div>
+
+                <table style="width:100%;border-collapse:collapse;font-size:0.85rem;margin-bottom:16px">
+                    <thead>
+                        <tr style="background:var(--gray-50)">
+                            <th style="padding:10px;text-align:left;border:1px solid var(--gray-200)">Description</th>
+                            <th style="padding:10px;text-align:right;border:1px solid var(--gray-200)">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding:10px;border:1px solid var(--gray-200)">Consultation Fee — Feb 20, 2025 at 2:00 PM</td>
+                            <td style="padding:10px;text-align:right;border:1px solid var(--gray-200)">₹500</td>
+                        </tr>
+                        <tr style="background:var(--gray-50)">
+                            <td style="padding:10px;border:1px solid var(--gray-200)">Platform Fee</td>
+                            <td style="padding:10px;text-align:right;border:1px solid var(--gray-200)">₹0</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px;font-weight:700;border:1px solid var(--gray-200)">Total Paid</td>
+                            <td style="padding:10px;text-align:right;font-weight:800;color:var(--secondary);border:1px solid var(--gray-200)">₹500</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p style="font-size:0.78rem;color:var(--gray-400);text-align:center">
+                    Payment via UPI | Transaction ID: UPI202502201032
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+function openInvoice() {
+    document.getElementById('invoiceModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+</script>
+{% endblock %}

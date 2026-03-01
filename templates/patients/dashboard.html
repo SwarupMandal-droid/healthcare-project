@@ -1,0 +1,219 @@
+{% extends 'patients/base_patient.html' %}
+{% load static %}
+
+{% block title %}Patient Dashboard — Lifeline Care{% endblock %}
+{% block breadcrumb %}Dashboard Overview{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}?v=1">
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- Welcome Banner -->
+<div class="welcome-banner">
+    <div class="welcome-text">
+        <h2>Good Morning, {{ request.user.first_name }}! 👋</h2>
+        <p>Here's what's happening with your health today.</p>
+    </div>
+    <a href="{% url 'patients:find_doctors' %}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Book Appointment
+    </a>
+</div>
+
+<!-- Stats -->
+<div class="dash-stats">
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#EFF6FF;color:var(--primary)">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ upcoming.count }}</div>
+            <div class="dsc-label">Upcoming Appointments</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#D1FAE5;color:var(--secondary)">
+            <i class="fas fa-check-double"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ completed }}</div>
+            <div class="dsc-label">Completed Visits</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#FEF3C7;color:var(--accent)">
+            <i class="fas fa-file-medical"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ doc_count }}</div>
+            <div class="dsc-label">Documents Received</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon" style="background:#FEE2E2;color:var(--danger)">
+            <i class="fas fa-rupee-sign"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">₹{{ total_spent }}</div>
+            <div class="dsc-label">Total Spent</div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Appointments from DB -->
+<div class="dash-grid-3">
+    <div class="panel-card">
+        <div class="panel-header">
+            <h3><i class="fas fa-calendar-alt"
+                   style="color:var(--primary);margin-right:8px"></i>
+                Upcoming Appointments</h3>
+            <a href="{% url 'patients:appointments' %}">View all</a>
+        </div>
+        <div class="panel-body" style="padding:8px 22px 16px">
+            {% for appt in upcoming %}
+            <div class="appt-item">
+                {% if appt.doctor.user.profile_photo %}
+                <img src="{{ appt.doctor.user.profile_photo.url }}"
+                     class="appt-doc-img" alt="">
+                {% else %}
+                <img src="https://i.pravatar.cc/44?img={{ appt.doctor.id }}"
+                     class="appt-doc-img" alt="">
+                {% endif %}
+                <div class="appt-info">
+                    <div class="appt-doc-name">
+                        Dr. {{ appt.doctor.user.get_full_name }}
+                    </div>
+                    <div class="appt-meta">
+                        <i class="fas fa-stethoscope"></i>
+                        {{ appt.doctor.specialization.name }}
+                        &nbsp;|&nbsp;
+                        <i class="fas fa-calendar"></i>
+                        {{ appt.appointment_date }} at {{ appt.start_time }}
+                    </div>
+                </div>
+                <span class="badge badge-{{ appt.status|lower }}">
+                    {{ appt.get_status_display }}
+                </span>
+            </div>
+            {% empty %}
+            <div style="text-align:center;padding:32px;color:var(--gray-400)">
+                <i class="fas fa-calendar-times"
+                   style="font-size:2rem;margin-bottom:12px;display:block"></i>
+                <p>No upcoming appointments</p>
+                <a href="{% url 'patients:find_doctors' %}"
+                   class="btn btn-primary btn-sm" style="margin-top:12px">
+                    Book Now
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Quick Actions (keep as is) -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-bolt"
+                       style="color:var(--accent);margin-right:8px"></i>
+                    Quick Actions</h3>
+            </div>
+            <div class="panel-body">
+                <div class="quick-actions">
+                    <a href="{% url 'patients:find_doctors' %}" class="qa-btn">
+                        <div class="qa-icon" style="background:#EFF6FF;color:var(--primary)">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        Find Doctor
+                    </a>
+                    <a href="{% url 'patients:ai_assistant' %}" class="qa-btn">
+                        <div class="qa-icon" style="background:#D1FAE5;color:var(--secondary)">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        AI Assistant
+                    </a>
+                    <a href="{% url 'patients:documents' %}" class="qa-btn">
+                        <div class="qa-icon" style="background:#FEF3C7;color:var(--accent)">
+                            <i class="fas fa-file-medical"></i>
+                        </div>
+                        My Documents
+                    </a>
+                    <a href="{% url 'patients:payment_history' %}" class="qa-btn">
+                        <div class="qa-icon" style="background:#FEE2E2;color:var(--danger)">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        Payments
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Quick Actions + Recent Doctors -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Quick Actions -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-bolt" style="color:var(--accent);margin-right:8px"></i>Quick Actions</h3>
+            </div>
+            <div class="panel-body">
+                <div class="quick-actions">
+                    <a href="{% url 'patients:find_doctors' %}" class="qa-btn">
+                        <div class="qa-icon" style="background:#EFF6FF;color:var(--primary)">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        Find Doctor
+                    </a>
+                    <a href="{% url 'patients:ai_assistant' %}" class="qa-btn">
+                        <div class="qa-icon" style="background:#D1FAE5;color:var(--secondary)">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        AI Assistant
+                    </a>
+                    <a href="{% url 'patients:documents' %}" class="qa-btn">
+                        <div class="qa-icon" style="background:#FEF3C7;color:var(--accent)">
+                            <i class="fas fa-file-medical"></i>
+                        </div>
+                        My Documents
+                    </a>
+                    <a href="{% url 'patients:payment_history' %}" class="qa-btn">
+                        <div class="qa-icon" style="background:#FEE2E2;color:var(--danger)">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        Payments
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Doctors -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-history" style="color:var(--secondary);margin-right:8px"></i>Recent Doctors</h3>
+            </div>
+            <div class="panel-body" style="padding:8px 22px 16px">
+                <div class="appt-item">
+                    <img src="https://i.pravatar.cc/44?img=33" class="appt-doc-img" alt="">
+                    <div class="appt-info">
+                        <div class="appt-doc-name">Dr. Arjun Mehta</div>
+                        <div class="appt-meta"><i class="fas fa-stethoscope"></i> Orthopedics</div>
+                    </div>
+                    <a href="#" class="btn btn-outline btn-sm">Rebook</a>
+                </div>
+                <div class="appt-item">
+                    <img src="https://i.pravatar.cc/44?img=25" class="appt-doc-img" alt="">
+                    <div class="appt-info">
+                        <div class="appt-doc-name">Dr. Kavita Nair</div>
+                        <div class="appt-meta"><i class="fas fa-stethoscope"></i> Pediatrics</div>
+                    </div>
+                    <a href="#" class="btn btn-outline btn-sm">Rebook</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
