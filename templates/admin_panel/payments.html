@@ -1,0 +1,163 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block title %}Manage Payments — Admin{% endblock %}
+{% block breadcrumb %}Payment Records{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+{% endblock %}
+
+{% block dash_content %}
+
+<div style="display:flex;align-items:center;
+            justify-content:space-between;margin-bottom:24px">
+    <h2 style="font-size:1.4rem">Payment Records</h2>
+    <div class="dash-stat-card"
+         style="padding:12px 20px;margin-bottom:0">
+        <div class="dsc-icon"
+             style="background:#D1FAE5;color:var(--secondary)">
+            <i class="fas fa-rupee-sign"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value" style="font-size:1.4rem">
+                ₹{{ total_revenue }}
+            </div>
+            <div class="dsc-label">Total Revenue</div>
+        </div>
+    </div>
+</div>
+
+<div class="filter-bar" style="margin-bottom:24px">
+    <div class="filter-group" style="flex:2">
+        <label><i class="fas fa-search"></i> Search</label>
+        <input type="text" value="{{ search }}"
+               placeholder="Search by patient or transaction ID..."
+               oninput="filterRows(this.value)">
+    </div>
+    <div class="filter-group">
+        <label>Status</label>
+        <select onchange="window.location.href='?status='+this.value">
+            <option value="">All</option>
+            <option value="success"
+                {% if filter_status == 'success' %}selected{% endif %}>
+                Success
+            </option>
+            <option value="pending"
+                {% if filter_status == 'pending' %}selected{% endif %}>
+                Pending
+            </option>
+            <option value="failed"
+                {% if filter_status == 'failed' %}selected{% endif %}>
+                Failed
+            </option>
+            <option value="refunded"
+                {% if filter_status == 'refunded' %}selected{% endif %}>
+                Refunded
+            </option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label>Method</label>
+        <select onchange="window.location.href='?method='+this.value">
+            <option value="">All Methods</option>
+            <option value="upi"
+                {% if filter_method == 'upi' %}selected{% endif %}>
+                UPI
+            </option>
+            <option value="card"
+                {% if filter_method == 'card' %}selected{% endif %}>
+                Card
+            </option>
+        </select>
+    </div>
+</div>
+
+<div class="panel-card">
+    <div class="payment-row payment-head">
+        <span>Patient</span>
+        <span>Doctor</span>
+        <span>Amount</span>
+        <span>Method</span>
+        <span>Status</span>
+        <span>Date</span>
+    </div>
+
+    {% for pay in payments %}
+    <div class="payment-row"
+         data-search="{{ pay.patient.get_full_name|lower }} {{ pay.transaction_id|lower }}">
+
+        <div class="appt-doc-info">
+            <img src="https://ui-avatars.com/api/?name={{ pay.patient.get_full_name }}&background=2563eb&color=fff&size=36"
+                 alt=""
+                 style="width:36px;height:36px;border-radius:50%">
+            <div>
+                <strong style="font-size:0.85rem">
+                    {{ pay.patient.get_full_name }}
+                </strong>
+                <br>
+                <span style="font-size:0.72rem;color:var(--gray-400);
+                             font-family:monospace">
+                    {{ pay.transaction_id }}
+                </span>
+            </div>
+        </div>
+
+        <div style="font-size:0.85rem;color:var(--gray-700)">
+            Dr. {{ pay.appointment.doctor.user.get_full_name }}
+        </div>
+
+        <div style="font-weight:800;font-size:0.95rem">
+            ₹{{ pay.amount }}
+        </div>
+
+        <div style="display:flex;align-items:center;
+                    gap:6px;font-size:0.82rem">
+            {% if pay.method == 'upi' %}
+            <i class="fas fa-mobile-alt"
+               style="color:var(--primary)"></i> UPI
+            {% else %}
+            <i class="fas fa-credit-card"
+               style="color:var(--secondary)"></i> Card
+            {% endif %}
+        </div>
+
+        <span class="badge
+            {% if pay.status == 'success' %}badge-success
+            {% elif pay.status == 'refunded' %}badge-warning
+            {% elif pay.status == 'failed' %}badge-danger
+            {% else %}badge-gray{% endif %}">
+            {{ pay.get_status_display }}
+        </span>
+
+        <div style="font-size:0.82rem;color:var(--gray-600)">
+            {{ pay.created_at|date:"M d, Y" }}
+            <br>
+            <span style="color:var(--gray-400)">
+                {{ pay.created_at|time:"g:i A" }}
+            </span>
+        </div>
+
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:48px;color:var(--gray-400)">
+        <p>No payments found.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+function filterRows(val) {
+    const search = val.toLowerCase();
+    document.querySelectorAll('.payment-row:not(.payment-head)')
+    .forEach(row => {
+        const text = row.dataset.search || '';
+        row.style.display = !search || text.includes(search) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

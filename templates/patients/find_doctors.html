@@ -1,4 +1,508 @@
-{% extends 'base.html' %}
-{% block content %}
-<h1>Page coming soon</h1>
+{% extends 'patients/base_patient.html' %}
+{% load static custom_filters %}
+
+{% block title %}Find Doctors — Lifeline Care{% endblock %}
+{% block breadcrumb %}Find Doctors{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- Page Header -->
+<div style="display:flex;align-items:center;
+            justify-content:space-between;margin-bottom:24px">
+    <div>
+        <h2 style="font-size:1.4rem;margin-bottom:4px">Find Doctors</h2>
+        <p style="color:var(--gray-500);font-size:0.9rem">
+            Search from our network of verified specialists
+        </p>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <div class="filter-group" style="flex:2">
+        <label><i class="fas fa-search"></i> Search</label>
+        <input type="text"
+               id="searchInput"
+               value="{{ search_query }}"
+               placeholder="Search by name, symptom, or specialization..."
+               oninput="filterDoctors()">
+    </div>
+
+    <div class="filter-group">
+        <label>Specialization</label>
+        <select id="filterSpec" onchange="filterDoctors()">
+            <option value="">All Specializations</option>
+            {% for spec in specializations %}
+            <option value="{{ spec.slug }}"
+                {% if spec_filter == spec.slug %}selected{% endif %}>
+                {{ spec.name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label>Availability</label>
+        <select id="filterAvail" onchange="filterDoctors()">
+            <option value="">Any</option>
+            <option value="available">Available</option>
+            <option value="unavailable">Unavailable</option>
+        </select>
+    </div>
+
+    <div class="filter-group">
+        <label>Sort By</label>
+        <select id="filterSort" onchange="filterDoctors()">
+            <option value="rating">Highest Rated</option>
+            <option value="fee_low">Lowest Fee</option>
+            <option value="fee_high">Highest Fee</option>
+            <option value="experience">Most Experience</option>
+        </select>
+    </div>
+
+    <button class="btn btn-primary" style="align-self:flex-end"
+            onclick="filterDoctors()">
+        <i class="fas fa-filter"></i> Filter
+    </button>
+</div>
+
+<!-- Results Header -->
+<div style="display:flex;align-items:center;
+            justify-content:space-between;margin-bottom:20px">
+    <p style="font-size:0.9rem;color:var(--gray-600)">
+        Showing <strong id="docCount">{{ doctors.count }}</strong>
+        doctor{{ doctors.count|pluralize }}
+        {% if search_query %}
+        for "<strong>{{ search_query }}</strong>"
+        {% endif %}
+    </p>
+    <div style="display:flex;gap:8px">
+        <button class="btn btn-sm btn-outline"
+                id="viewGridBtn"
+                onclick="setView('grid')"
+                title="Grid View">
+            <i class="fas fa-th"></i>
+        </button>
+        <button class="btn btn-sm btn-outline"
+                id="viewListBtn"
+                onclick="setView('list')"
+                title="List View">
+            <i class="fas fa-list"></i>
+        </button>
+    </div>
+</div>
+
+<!-- ── Doctors Grid ── -->
+{% if doctors %}
+<div class="doctors-grid" id="doctorsGrid">
+
+    {% for doctor in doctors %}
+    <div class="doctor-card"
+         data-name="{{ doctor.user.get_full_name|lower }}"
+         data-spec="{{ doctor.specialization.slug|lower }}"
+         data-available="{{ doctor.is_available|yesno:'true,false' }}"
+         data-fee="{{ doctor.consultation_fee }}"
+         data-rating="{{ doctor.rating }}"
+         data-experience="{{ doctor.experience_years }}">
+
+        <!-- Top -->
+        <div class="dc-top">
+            {% if doctor.user.profile_photo %}
+            <img src="{{ doctor.user.profile_photo.url }}"
+                 class="dc-img" alt="Dr. {{ doctor.user.get_full_name }}">
+            {% else %}
+            <img src="https://ui-avatars.com/api/?name={{ doctor.user.get_full_name }}&background=2563eb&color=fff&size=60"
+                 class="dc-img" alt="Dr. {{ doctor.user.get_full_name }}">
+            {% endif %}
+
+            <div class="dc-info">
+                <div class="dc-info-name">
+                    Dr. {{ doctor.user.get_full_name }}
+                    {% if doctor.is_verified %}
+                    <i class="fas fa-check-circle"
+                       style="color:var(--primary);font-size:0.75rem"
+                       title="Verified"></i>
+                    {% endif %}
+                </div>
+                <div class="dc-info-spec">
+                    {{ doctor.specialization.name }}
+                </div>
+                <div class="dc-rating">
+                    {% for is_filled in doctor.rating|star_range %}
+                        {% if is_filled %}
+                        <i class="fas fa-star"></i>
+                        {% else %}
+                        <i class="far fa-star"></i>
+                        {% endif %}
+                    {% endfor %}
+                    <span style="margin-left:4px">
+                        {{ doctor.rating }}
+                        ({{ doctor.total_reviews }} reviews)
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="dc-stats">
+            <div class="dc-stat">
+                <i class="fas fa-briefcase"></i>
+                {{ doctor.experience_years }}+ yrs
+            </div>
+            <div class="dc-stat">
+                <i class="fas fa-map-marker-alt"></i>
+                {% if doctor.clinic_name %}
+                    {{ doctor.clinic_name|truncatechars:20 }}
+                {% else %}
+                    Lifeline Care
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Availability & Fee -->
+        <div style="display:flex;align-items:center;
+                    justify-content:space-between">
+            {% if doctor.is_available %}
+            <div class="dc-avail available">
+                <div class="dc-avail-dot"></div>
+                Available Today
+            </div>
+            {% else %}
+            <div class="dc-avail unavailable">
+                <div class="dc-avail-dot"></div>
+                Unavailable
+            </div>
+            {% endif %}
+
+            <div class="dc-fee">
+                ₹{{ doctor.consultation_fee }}
+                <span>/ visit</span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="dc-actions">
+            <button class="btn btn-outline btn-sm"
+                    onclick="openDoctorModal(
+                        '{{ doctor.user.get_full_name|escapejs }}',
+                        '{{ doctor.specialization.name|escapejs }}',
+                        '{{ doctor.rating }}',
+                        '{{ doctor.experience_years }}',
+                        '{{ doctor.consultation_fee }}',
+                        '{{ doctor.bio|escapejs }}',
+                        {{ doctor.id }},
+                        '{% if doctor.user.profile_photo %}{{ doctor.user.profile_photo.url }}{% else %}https://ui-avatars.com/api/?name={{ doctor.user.get_full_name|urlencode }}&background=2563eb&color=fff&size=80{% endif %}',
+                        '{{ doctor.is_available|yesno:"true,false" }}',
+                        '{{ doctor.is_verified|yesno:"true,false" }}'
+                    )">
+                <i class="fas fa-eye"></i> Profile
+            </button>
+
+            {% if doctor.is_available %}
+            <a href="{% url 'appointments:book' doctor.id %}"
+               class="btn btn-primary btn-sm">
+                <i class="fas fa-calendar-plus"></i> Book Now
+            </a>
+            {% else %}
+            <button class="btn btn-sm"
+                    style="background:var(--gray-100);
+                           color:var(--gray-400);
+                           cursor:not-allowed;flex:1;
+                           justify-content:center"
+                    disabled>
+                <i class="fas fa-calendar-times"></i> Unavailable
+            </button>
+            {% endif %}
+        </div>
+
+    </div>
+    {% endfor %}
+
+</div>
+
+{% else %}
+<!-- Empty State -->
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="fas fa-user-md"></i>
+    </div>
+    <h3>No Doctors Found</h3>
+    {% if search_query or spec_filter %}
+    <p>No doctors match your search criteria.<br>
+       Try a different search or clear the filters.</p>
+    <a href="{% url 'patients:find_doctors' %}"
+       class="btn btn-primary" style="margin-top:16px">
+        <i class="fas fa-times"></i> Clear Filters
+    </a>
+    {% else %}
+    <p>No doctors are available at the moment.<br>
+       Please check back soon.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+
+<!-- ══════════════════════════════════════════
+     DOCTOR PROFILE MODAL
+════════════════════════════════════════════ -->
+<div class="modal-overlay" id="doctorModal">
+    <div class="modal-box modal-lg">
+        <div class="modal-header">
+            <h3>Doctor Profile</h3>
+            <button class="modal-close"
+                    onclick="closeModal('doctorModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+
+            <!-- Doctor Top Info -->
+            <div class="doctor-modal-top">
+                <img id="modalDoctorImg" src="" alt=""
+                     class="doctor-modal-img">
+                <div style="flex:1">
+                    <h2 style="font-size:1.3rem;margin-bottom:4px"
+                        id="modalDoctorName"></h2>
+                    <p style="color:var(--primary);font-weight:600;
+                               margin-bottom:10px"
+                       id="modalDoctorSpec"></p>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap">
+                        <span class="badge badge-info" id="modalDoctorExp"></span>
+                        <span class="badge badge-success" id="modalVerified"
+                              style="display:none">
+                            <i class="fas fa-check"></i> Verified
+                        </span>
+                        <span class="badge badge-gray" id="modalDoctorAvail"></span>
+                    </div>
+                </div>
+                <div style="text-align:center;flex-shrink:0">
+                    <div style="font-size:1.8rem;font-weight:800;
+                                color:var(--primary)" id="modalDoctorFee">
+                    </div>
+                    <div style="font-size:0.75rem;color:var(--gray-500)">
+                        per visit
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bio -->
+            <div style="margin:16px 0;padding:16px;
+                        background:var(--gray-50);
+                        border-radius:var(--radius)">
+                <p style="font-size:0.9rem;color:var(--gray-600);
+                           line-height:1.7"
+                   id="modalDoctorBio">
+                </p>
+            </div>
+
+            <!-- Rating -->
+            <div style="display:flex;align-items:center;
+                        gap:8px;margin-bottom:20px">
+                <div id="modalStars"
+                     style="color:#F59E0B;font-size:1.1rem"></div>
+                <span id="modalRating"
+                      style="font-weight:700;font-size:1rem"></span>
+                <span style="color:var(--gray-400);font-size:0.85rem">
+                    out of 5
+                </span>
+            </div>
+
+            <!-- CTA -->
+            <div style="display:flex;gap:12px;margin-top:8px">
+                <button class="btn btn-outline w-full justify-center"
+                        onclick="closeModal('doctorModal')">
+                    <i class="fas fa-times"></i> Close
+                </button>
+                <a id="modalBookBtn" href="#"
+                   class="btn btn-primary w-full justify-center">
+                    <i class="fas fa-calendar-plus"></i>
+                    Book Appointment
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     EMPTY STATE CSS (inline)
+════════════════════════════════════════════ -->
+<style>
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--gray-100);
+}
+.empty-state-icon {
+    width: 80px; height: 80px;
+    background: var(--primary-light);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    color: var(--primary);
+    margin: 0 auto 20px;
+}
+.empty-state h3 { font-size: 1.3rem; margin-bottom: 10px; }
+.empty-state p  { color: var(--gray-500); line-height: 1.7; }
+</style>
+
+{% endblock %}
+
+
+{% block page_js %}
+<script>
+// ── Open Doctor Profile Modal ──────────────────────────────
+function openDoctorModal(name, spec, rating,
+                          exp, fee, bio,
+                          doctorId, imgUrl, isAvailable, isVerified) {
+
+    document.getElementById('modalDoctorName').textContent = 'Dr. ' + name;
+    document.getElementById('modalDoctorSpec').textContent = spec;
+    document.getElementById('modalDoctorExp').innerHTML =
+        '<i class="fas fa-briefcase"></i> ' + exp + ' yrs exp';
+    document.getElementById('modalDoctorFee').textContent = '₹' + fee;
+    document.getElementById('modalDoctorImg').src = imgUrl;
+
+    // Bio
+    const bioEl = document.getElementById('modalDoctorBio');
+    bioEl.textContent = bio && bio.trim()
+        ? bio
+        : 'Experienced specialist dedicated to providing quality patient care.';
+
+    // Verified badge
+    const verifiedEl = document.getElementById('modalVerified');
+    if (isVerified === 'true') {
+        verifiedEl.style.display = 'inline-flex';
+    } else {
+        verifiedEl.style.display = 'none';
+    }
+
+    // Availability badge
+    const availEl = document.getElementById('modalDoctorAvail');
+    if (isAvailable === 'true') {
+        availEl.textContent = '✓ Available Today';
+        availEl.className   = 'badge badge-success';
+    } else {
+        availEl.textContent = '✗ Unavailable';
+        availEl.className   = 'badge badge-gray';
+    }
+
+    // Stars
+    const starsEl  = document.getElementById('modalStars');
+    const ratingNum = parseFloat(rating) || 0;
+    let starsHtml   = '';
+    for (let i = 1; i <= 5; i++) {
+        starsHtml += i <= Math.round(ratingNum)
+            ? '<i class="fas fa-star"></i>'
+            : '<i class="far fa-star"></i>';
+    }
+    starsEl.innerHTML = starsHtml;
+    document.getElementById('modalRating').textContent = ratingNum.toFixed(1);
+
+    // Book button
+    const bookBtn = document.getElementById('modalBookBtn');
+    if (isAvailable === 'true') {
+        bookBtn.href = `/appointments/book/${doctorId}/`;
+        bookBtn.style.opacity      = '1';
+        bookBtn.style.pointerEvents= 'auto';
+    } else {
+        bookBtn.href = '#';
+        bookBtn.style.opacity       = '0.5';
+        bookBtn.style.pointerEvents = 'none';
+    }
+
+    // Open modal
+    document.getElementById('doctorModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+
+// ── Grid / List View Toggle ────────────────────────────────
+function setView(type) {
+    const grid    = document.getElementById('doctorsGrid');
+    const gridBtn = document.getElementById('viewGridBtn');
+    const listBtn = document.getElementById('viewListBtn');
+
+    if (!grid) return;
+
+    if (type === 'list') {
+        grid.style.gridTemplateColumns = '1fr';
+        listBtn.classList.add('btn-primary');
+        listBtn.classList.remove('btn-outline');
+        gridBtn.classList.add('btn-outline');
+        gridBtn.classList.remove('btn-primary');
+    } else {
+        grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        gridBtn.classList.add('btn-primary');
+        gridBtn.classList.remove('btn-outline');
+        listBtn.classList.add('btn-outline');
+        listBtn.classList.remove('btn-primary');
+    }
+}
+
+
+// ── Client-side Filter & Sort ──────────────────────────────
+function filterDoctors() {
+    const search = document.getElementById('searchInput')
+                            .value.toLowerCase().trim();
+    const spec   = document.getElementById('filterSpec')
+                            .value.toLowerCase();
+    const avail  = document.getElementById('filterAvail').value;
+    const sort   = document.getElementById('filterSort').value;
+
+    const grid  = document.getElementById('doctorsGrid');
+    if (!grid) return;
+
+    let cards = Array.from(grid.querySelectorAll('.doctor-card'));
+
+    // Filter
+    cards.forEach(card => {
+        const nameMatch  = card.dataset.name.includes(search);
+        const specMatch  = card.dataset.spec.includes(search);
+        const matchSearch= !search || nameMatch || specMatch;
+
+        const matchSpec  = !spec ||
+                           card.dataset.spec.includes(spec);
+
+        const matchAvail = !avail ||
+                           card.dataset.available === avail;
+
+        card.style.display =
+            (matchSearch && matchSpec && matchAvail)
+            ? '' : 'none';
+    });
+
+    // Sort visible cards
+    const visible = cards.filter(c => c.style.display !== 'none');
+
+    visible.sort((a, b) => {
+        if (sort === 'fee_low')
+            return parseFloat(a.dataset.fee) -
+                   parseFloat(b.dataset.fee);
+        if (sort === 'fee_high')
+            return parseFloat(b.dataset.fee) -
+                   parseFloat(a.dataset.fee);
+        if (sort === 'experience')
+            return parseInt(b.dataset.experience) -
+                   parseInt(a.dataset.experience);
+        // Default: rating
+        return parseFloat(b.dataset.rating) -
+               parseFloat(a.dataset.rating);
+    });
+
+    // Re-append in sorted order
+    visible.forEach(card => grid.appendChild(card));
+
+    // Update count
+    const countEl = document.getElementById('docCount');
+    if (countEl) countEl.textContent = visible.length;
+}
+</script>
 {% endblock %}

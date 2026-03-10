@@ -139,11 +139,14 @@ def signup_view(request):
             }
         )
 
-        DoctorProfile.objects.create(
+        doc_profile = DoctorProfile.objects.create(
             user           = user,
             specialization = spec,
             license_number = license_number,
         )
+
+        from notifications.utils import notify_admin_new_doctor
+        notify_admin_new_doctor(doc_profile)
 
     # ── Log in immediately ──
     login(request, user)

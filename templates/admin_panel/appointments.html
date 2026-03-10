@@ -1,0 +1,130 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block title %}Manage Appointments — Admin{% endblock %}
+{% block breadcrumb %}Manage Appointments{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+{% endblock %}
+
+{% block dash_content %}
+
+<div style="display:flex;align-items:center;
+            justify-content:space-between;margin-bottom:24px">
+    <h2 style="font-size:1.4rem">All Appointments</h2>
+</div>
+
+<div class="filter-bar" style="margin-bottom:24px">
+    <div class="filter-group" style="flex:2">
+        <label><i class="fas fa-search"></i> Search</label>
+        <input type="text"
+               value="{{ search }}"
+               placeholder="Search by patient, doctor, or ID..."
+               oninput="filterRows(this.value)">
+    </div>
+    <div class="filter-group">
+        <label>Status</label>
+        <select onchange="window.location.href='?status='+this.value">
+            <option value="">All Status</option>
+            <option value="pending"
+                {% if filter_status == 'pending' %}selected{% endif %}>
+                Pending
+            </option>
+            <option value="confirmed"
+                {% if filter_status == 'confirmed' %}selected{% endif %}>
+                Confirmed
+            </option>
+            <option value="completed"
+                {% if filter_status == 'completed' %}selected{% endif %}>
+                Completed
+            </option>
+            <option value="cancelled"
+                {% if filter_status == 'cancelled' %}selected{% endif %}>
+                Cancelled
+            </option>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label>Date</label>
+        <input type="date" value="{{ filter_date }}"
+               onchange="window.location.href='?date='+this.value">
+    </div>
+</div>
+
+<div class="panel-card">
+    <div class="appt-row appt-table-head"
+         style="grid-template-columns:1.5fr 1.5fr 1.5fr 1fr 1fr">
+        <span>Patient</span>
+        <span>Doctor</span>
+        <span>Date & Time</span>
+        <span>Status</span>
+        <span>ID</span>
+    </div>
+
+    {% for appt in appointments %}
+    <div class="appt-row"
+         style="grid-template-columns:1.5fr 1.5fr 1.5fr 1fr 1fr"
+         data-search="{{ appt.patient.get_full_name|lower }} {{ appt.doctor.user.get_full_name|lower }} {{ appt.appointment_id|lower }}">
+
+        <div class="appt-doc-info">
+            <img src="https://ui-avatars.com/api/?name={{ appt.patient.get_full_name }}&background=2563eb&color=fff&size=36"
+                 alt=""
+                 style="width:36px;height:36px;border-radius:50%">
+            <div class="appt-doc-info-text">
+                <strong>{{ appt.patient.get_full_name }}</strong>
+            </div>
+        </div>
+
+        <div style="font-size:0.85rem">
+            <strong>Dr. {{ appt.doctor.user.get_full_name }}</strong>
+            <br>
+            <span style="color:var(--gray-400);font-size:0.75rem">
+                {{ appt.doctor.specialization.name }}
+            </span>
+        </div>
+
+        <div style="font-size:0.85rem">
+            <strong>{{ appt.appointment_date|date:"M d, Y" }}</strong>
+            <br>
+            <span style="color:var(--gray-400)">
+                {{ appt.start_time|time:"g:i A" }}
+            </span>
+        </div>
+
+        <span class="badge
+            {% if appt.status == 'confirmed' %}badge-success
+            {% elif appt.status == 'completed' %}badge-gray
+            {% elif appt.status == 'pending' %}badge-warning
+            {% else %}badge-danger{% endif %}">
+            {{ appt.get_status_display }}
+        </span>
+
+        <div style="font-size:0.75rem;font-family:monospace;
+                    color:var(--primary);font-weight:700">
+            {{ appt.appointment_id }}
+        </div>
+
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:48px;color:var(--gray-400)">
+        <p>No appointments found.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+function filterRows(val) {
+    const search = val.toLowerCase();
+    document.querySelectorAll('.appt-row:not(.appt-table-head)')
+    .forEach(row => {
+        const text = row.dataset.search || '';
+        row.style.display = !search || text.includes(search) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

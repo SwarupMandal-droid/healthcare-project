@@ -17,41 +17,32 @@
     </button>
 </div>
 
-<!-- Summary Cards -->
+<!-- stats cards -->
 <div class="dash-stats" style="margin-bottom:28px">
     <div class="dash-stat-card">
         <div class="dsc-icon" style="background:#EFF6FF;color:var(--primary)">
-            <i class="fas fa-rupee-sign"></i>
+            <i class="fas fa-wallet"></i>
         </div>
         <div class="dsc-info">
-            <div class="dsc-value">₹4,200</div>
+            <div class="dsc-value">₹{{ total_spent }}</div>
             <div class="dsc-label">Total Spent</div>
         </div>
     </div>
     <div class="dash-stat-card">
-        <div class="dsc-icon" style="background:#D1FAE5;color:var(--secondary)">
-            <i class="fas fa-check-circle"></i>
+        <div class="dsc-icon" style="background:#ECFDF5;color:#059669">
+            <i class="fas fa-calendar-check"></i>
         </div>
         <div class="dsc-info">
-            <div class="dsc-value">7</div>
-            <div class="dsc-label">Successful Payments</div>
-        </div>
-    </div>
-    <div class="dash-stat-card">
-        <div class="dsc-icon" style="background:#FEF3C7;color:var(--accent)">
-            <i class="fas fa-calendar-alt"></i>
-        </div>
-        <div class="dsc-info">
-            <div class="dsc-value">₹1,000</div>
+            <div class="dsc-value">₹{{ this_month }}</div>
             <div class="dsc-label">This Month</div>
         </div>
     </div>
     <div class="dash-stat-card">
-        <div class="dsc-icon" style="background:#FEE2E2;color:var(--danger)">
+        <div class="dsc-icon" style="background:#FEF3C7;color:var(--accent)">
             <i class="fas fa-undo"></i>
         </div>
         <div class="dsc-info">
-            <div class="dsc-value">₹500</div>
+            <div class="dsc-value">₹{{ refunded }}</div>
             <div class="dsc-label">Refunded</div>
         </div>
     </div>
@@ -89,14 +80,6 @@
     </button>
 </div>
 
-<!-- Payment Table -->
-<div class="panel-card">
-    <div class="payment-row payment-head">
-        <span>Date</span>
-        <span>Doctor</span>
-        <span>Amount</span>
-        <span>Method</span>
-        <span>Status</span>
         <span>Invoice</span>
     </div>
 
@@ -267,9 +250,33 @@
 
 {% block page_js %}
 <script>
-function openInvoice() {
+function openInvoice(txnId, date, amount, status, doctor) {
+    document.getElementById('invTxnId').textContent = txnId;
+    document.getElementById('invDate').textContent = date;
+    document.getElementById('invAmount').textContent = '₹' + amount;
+    document.getElementById('invDoctor').textContent = doctor;
+    
+    const badge = document.getElementById('invStatusBadge');
+    badge.textContent = status;
+    badge.className = 'badge ' + (status.toLowerCase() === 'success' ? 'badge-success' : (status.toLowerCase() === 'refunded' ? 'badge-warning' : 'badge-danger'));
+
     document.getElementById('invoiceModal').classList.add('open');
     document.body.style.overflow = 'hidden';
 }
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// Simple search
+document.getElementById('paymentSearch').addEventListener('input', function(e) {
+    const term = e.target.value.toLowerCase();
+    document.querySelectorAll('.payment-table-card .appt-row:not(.appt-table-head)').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(term) ? 'flex' : 'none';
+    });
+});
 </script>
 {% endblock %}
+```

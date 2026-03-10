@@ -1,5 +1,5 @@
 {% extends 'patients/base_patient.html' %}
-{% load static %}
+{% load static custom_filters %}
 
 {% block title %}My Profile — Lifeline Care{% endblock %}
 {% block breadcrumb %}My Profile{% endblock %}
@@ -85,120 +85,149 @@
     <!-- Profile Form -->
     <div style="display:flex;flex-direction:column;gap:20px">
 
-        <!-- Personal Details -->
-        <div class="panel-card">
-            <div class="panel-header">
-                <h3><i class="fas fa-user" style="color:var(--primary);margin-right:8px"></i>Personal Information</h3>
+        <!-- Profile Header -->
+<div class="profile-header-card">
+    <div class="ph-content">
+        <div class="ph-avatar-section">
+            <div class="ph-avatar-wrapper">
+                {% if request.user.profile_photo %}
+                <img src="{{ request.user.profile_photo.url }}" alt="" id="profilePreview">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name }}&background=2563eb&color=fff" alt="" id="profilePreview">
+                {% endif %}
+                <label for="id_profile_photo" class="ph-avatar-edit">
+                    <i class="fas fa-camera"></i>
+                </label>
             </div>
-            <div class="panel-body">
-                <div class="form-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-                    <div class="form-group">
-                        <label class="form-label">First Name</label>
-                        <input type="text" class="form-control" value="Ananya">
+            <div class="ph-info">
+                <h2>{{ request.user.get_full_name }}</h2>
+                <p><i class="fas fa-envelope"></i> {{ request.user.email }}</p>
+                <div class="ph-badges">
+                    <span class="badge badge-info">ID: #LC-{{ request.user.id|stringformat:"04d" }}</span>
+                    <span class="badge badge-gray">Joined {{ request.user.date_joined|date:"M Y" }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="ph-actions">
+            <!-- This form is part of the larger form below -->
+        </div>
+    </div>
+</div>
+
+<form method="POST" enctype="multipart/form-data" action="{% url 'patients:profile' %}">
+    {% csrf_token %}
+    <input type="file" name="profile_photo" id="id_profile_photo" style="display:none" onchange="previewImage(this)">
+    
+    <div class="profile-grid">
+        <!-- Main Info -->
+        <div class="profile-main-col">
+            <div class="profile-card">
+                <div class="pc-header">
+                    <h3><i class="fas fa-user"></i> Personal Information</h3>
+                </div>
+                <div class="pc-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control" name="first_name" value="{{ request.user.first_name }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control" name="last_name" value="{{ request.user.last_name }}">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" class="form-control" name="email" value="{{ request.user.email }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" name="phone" value="{{ request.user.phone }}">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
+                        <div class="form-group">
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" class="form-control" name="date_of_birth" value="{{ patient_profile.date_of_birth|date:'Y-m-d' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Gender</label>
+                            <select class="form-control" name="gender">
+                                <option value="Male" {% if patient_profile.gender == 'Male' %}selected{% endif %}>Male</option>
+                                <option value="Female" {% if patient_profile.gender == 'Female' %}selected{% endif %}>Female</option>
+                                <option value="Other" {% if patient_profile.gender == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Blood Group</label>
+                            <select class="form-control" name="blood_group">
+                                <option value="">Select</option>
+                                {% for bg in 'A+,A-,B+,B-,O+,O-,AB+,AB-'|split:',' %}
+                                <option value="{{ bg }}" {% if patient_profile.blood_group == bg %}selected{% endif %}>{{ bg }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Last Name</label>
-                        <input type="text" class="form-control" value="Sharma">
+                        <label class="form-label">Full Address</label>
+                        <textarea class="form-control" name="address" rows="3">{{ patient_profile.address }}</textarea>
                     </div>
                 </div>
-                <div class="form-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-                    <div class="form-group">
-                        <label class="form-label">Date of Birth</label>
-                        <input type="date" class="form-control" value="1997-03-15">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Gender</label>
-                        <select class="form-control">
-                            <option selected>Female</option>
-                            <option>Male</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
+            </div>
+
+            <div class="profile-card">
+                <div class="pc-header">
+                    <h3><i class="fas fa-history"></i> Medical History</h3>
                 </div>
-                <div class="form-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div class="pc-body">
                     <div class="form-group">
-                        <label class="form-label">Email Address</label>
-                        <input type="email" class="form-control" value="ananya@example.com">
+                        <label class="form-label">Known Allergies</label>
+                        <textarea class="form-control" name="allergies" rows="2" placeholder="e.g. Peanuts, Penicillin...">{{ patient_profile.allergies }}</textarea>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Phone Number</label>
-                        <input type="tel" class="form-control" value="+91 98765 43210">
+                        <label class="form-label">Chronic Conditions</label>
+                        <textarea class="form-control" name="chronic_conditions" rows="2" placeholder="e.g. Diabetes, Hypertension...">{{ patient_profile.chronic_conditions }}</textarea>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Address</label>
-                    <input type="text" class="form-control" value="42, Park Street, Bandra West, Mumbai — 400050">
+                    <div class="form-group">
+                        <label class="form-label">Current Medications</label>
+                        <textarea class="form-control" name="current_medications" rows="2" placeholder="List any medications you take regularly...">{{ patient_profile.current_medications }}</textarea>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Medical Information -->
-        <div class="panel-card">
-            <div class="panel-header">
-                <h3><i class="fas fa-heartbeat" style="color:var(--danger);margin-right:8px"></i>Medical Information</h3>
-            </div>
-            <div class="panel-body">
-                <div class="form-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <!-- Sidebar Info -->
+        <div class="profile-side-col">
+            <div class="profile-card">
+                <div class="pc-header">
+                    <h3><i class="fas fa-phone-alt"></i> Emergency Contact</h3>
+                </div>
+                <div class="pc-body">
                     <div class="form-group">
-                        <label class="form-label">Blood Group</label>
-                        <select class="form-control">
-                            <option>A+</option><option>A-</option>
-                            <option selected>B+</option><option>B-</option>
-                            <option>AB+</option><option>AB-</option>
-                            <option>O+</option><option>O-</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Height (cm)</label>
-                        <input type="number" class="form-control" value="162">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Known Allergies</label>
-                    <input type="text" class="form-control" placeholder="e.g. Penicillin, Dust, Peanuts" value="Penicillin">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Chronic Conditions</label>
-                    <input type="text" class="form-control" placeholder="e.g. Diabetes, Hypertension" value="Mild Hypertension">
-                </div>
-                <div class="form-group" style="margin-bottom:0">
-                    <label class="form-label">Current Medications</label>
-                    <textarea class="form-control" rows="2" placeholder="List any ongoing medications...">Tab. Metoprolol 25mg — once daily</textarea>
-                </div>
-            </div>
-        </div>
-
-        <!-- Emergency Contact -->
-        <div class="panel-card">
-            <div class="panel-header">
-                <h3><i class="fas fa-phone-alt" style="color:var(--secondary);margin-right:8px"></i>Emergency Contact</h3>
-            </div>
-            <div class="panel-body">
-                <div class="form-two-col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-                    <div class="form-group">
-                        <label class="form-label">Contact Name</label>
-                        <input type="text" class="form-control" value="Rajan Sharma">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-control" name="emergency_name" value="{{ patient_profile.emergency_name }}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Relationship</label>
-                        <select class="form-control">
-                            <option selected>Father</option>
-                            <option>Mother</option>
-                            <option>Spouse</option>
-                            <option>Sibling</option>
-                            <option>Other</option>
-                        </select>
+                        <input type="text" class="form-control" name="emergency_relationship" value="{{ patient_profile.emergency_relationship }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" name="emergency_phone" value="{{ patient_profile.emergency_phone }}">
                     </div>
                 </div>
-                <div class="form-group" style="margin-bottom:0">
-                    <label class="form-label">Emergency Phone</label>
-                    <input type="tel" class="form-control" value="+91 91234 56789">
-                </div>
             </div>
-        </div>
 
+            <button type="submit" class="btn btn-primary w-full justify-center" style="padding:16px;font-size:1.1rem">
+                <i class="fas fa-save" style="margin-right:10px"></i> Save All Changes
+            </button>
+            <p style="text-align:center;color:var(--gray-500);font-size:0.8rem;margin-top:12px">
+                Last updated: {{ patient_profile.updated_at|date:"M d, Y" }}
+            </p>
+        </div>
     </div>
-</div>
+</form>
 
 <!-- Change Password Modal -->
 <div class="modal-overlay" id="changePwModal">

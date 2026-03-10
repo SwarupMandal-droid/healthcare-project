@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'appointments',
     'payments',
     'ai_assistant',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +51,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'patients.context_processors.appointment_badge',
             ],
         },
     },
@@ -94,9 +96,9 @@ LOGIN_URL = '/accounts/auth/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/auth/'
 
-# ✅ Razorpay
-RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
-RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
+# Razorpay
+RAZORPAY_KEY_ID     = os.environ.get('RAZORPAY_KEY_ID', 'rzp_test_SOJfL5DT7brNn8').strip()
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET', 'lWLekl4x7q49EU9Xw0ZqqjZI').strip()
 
 # ✅ Anthropic
 ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')

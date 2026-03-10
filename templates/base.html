@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <!-- Page-specific CSS -->
     {% block extra_css %}{% endblock %}
+    
+    <meta name="csrf-token" content="{{ csrf_token }}">
 </head>
 <body>
 

@@ -1,0 +1,276 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard — Lifeline Care{% endblock %}
+{% block breadcrumb %}Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+{% endblock %}
+
+{% block dash_content %}
+
+<!-- Welcome Banner -->
+<div class="welcome-banner"
+     style="background:linear-gradient(135deg,#4c1d95,#7c3aed)">
+    <div class="welcome-text">
+        <h2>Welcome, {{ request.user.first_name }}! 🛠️</h2>
+        <p>Here's your platform overview for today.</p>
+    </div>
+    <div style="position:relative;z-index:1;display:flex;gap:10px">
+        <a href="{% url 'admin_panel:doctors' %}"
+           class="btn"
+           style="background:white;color:#7c3aed;border-color:white">
+            <i class="fas fa-user-md"></i> Manage Doctors
+        </a>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="dash-stats">
+    <div class="dash-stat-card">
+        <div class="dsc-icon"
+             style="background:#EDE9FE;color:#7C3AED">
+            <i class="fas fa-user-md"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ total_doctors }}</div>
+            <div class="dsc-label">Total Doctors</div>
+        </div>
+        {% if pending_doctors %}
+        <span class="dsc-trend"
+              style="background:#FEE2E2;color:#991B1B">
+            {{ pending_doctors }} pending
+        </span>
+        {% endif %}
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dsc-icon"
+             style="background:#EFF6FF;color:var(--primary)">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ total_patients }}</div>
+            <div class="dsc-label">Total Patients</div>
+        </div>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dsc-icon"
+             style="background:#D1FAE5;color:var(--secondary)">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ total_appts }}</div>
+            <div class="dsc-label">Total Appointments</div>
+        </div>
+        <span class="dsc-trend trend-up">
+            +{{ month_appts }} this month
+        </span>
+    </div>
+
+    <div class="dash-stat-card">
+        <div class="dsc-icon"
+             style="background:#FEF3C7;color:var(--accent)">
+            <i class="fas fa-rupee-sign"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">₹{{ total_revenue }}</div>
+            <div class="dsc-label">Total Revenue</div>
+        </div>
+        <span class="dsc-trend trend-up">
+            ₹{{ month_revenue }} this month
+        </span>
+    </div>
+</div>
+
+<!-- Second Row Stats -->
+<div class="dash-stats" style="margin-bottom:28px">
+    <div class="dash-stat-card">
+        <div class="dsc-icon"
+             style="background:#D1FAE5;color:var(--secondary)">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ appt_stats.confirmed }}</div>
+            <div class="dsc-label">Confirmed</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon"
+             style="background:#EFF6FF;color:var(--primary)">
+            <i class="fas fa-check-double"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ appt_stats.completed }}</div>
+            <div class="dsc-label">Completed</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon"
+             style="background:#FEF3C7;color:var(--accent)">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ appt_stats.pending }}</div>
+            <div class="dsc-label">Pending</div>
+        </div>
+    </div>
+    <div class="dash-stat-card">
+        <div class="dsc-icon"
+             style="background:#FEE2E2;color:var(--danger)">
+            <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="dsc-info">
+            <div class="dsc-value">{{ appt_stats.cancelled }}</div>
+            <div class="dsc-label">Cancelled</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Grid -->
+<div class="dash-grid">
+
+    <!-- Recent Appointments -->
+    <div class="panel-card">
+        <div class="panel-header">
+            <h3><i class="fas fa-calendar-alt"
+                   style="color:var(--primary);margin-right:8px"></i>
+                Recent Appointments</h3>
+            <a href="{% url 'admin_panel:appointments' %}">View all</a>
+        </div>
+        <div style="padding:0">
+            {% for appt in recent_appts %}
+            <div class="appt-row"
+                 style="grid-template-columns:2fr 1.5fr 1fr 1fr;
+                        padding:14px 20px">
+                <div class="appt-doc-info">
+                    <img src="https://ui-avatars.com/api/?name={{ appt.patient.get_full_name }}&background=2563eb&color=fff&size=36"
+                         alt=""
+                         style="width:36px;height:36px;border-radius:50%">
+                    <div class="appt-doc-info-text">
+                        <strong>{{ appt.patient.get_full_name }}</strong>
+                        <span>Dr. {{ appt.doctor.user.get_full_name }}</span>
+                    </div>
+                </div>
+                <div style="font-size:0.85rem">
+                    <div style="font-weight:600">
+                        {{ appt.appointment_date|date:"M d, Y" }}
+                    </div>
+                    <div style="color:var(--gray-400)">
+                        {{ appt.start_time|time:"g:i A" }}
+                    </div>
+                </div>
+                <span class="badge
+                    {% if appt.status == 'confirmed' %}badge-success
+                    {% elif appt.status == 'completed' %}badge-gray
+                    {% elif appt.status == 'pending' %}badge-warning
+                    {% else %}badge-danger{% endif %}">
+                    {{ appt.get_status_display }}
+                </span>
+                <div style="font-size:0.8rem;color:var(--gray-500)">
+                    {{ appt.doctor.specialization.name }}
+                </div>
+            </div>
+            {% empty %}
+            <div style="text-align:center;padding:32px;
+                        color:var(--gray-400)">
+                No appointments yet.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- Top Specializations -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-stethoscope"
+                       style="color:#7C3AED;margin-right:8px"></i>
+                    Top Specializations</h3>
+            </div>
+            <div class="panel-body" style="padding:12px 20px">
+                {% for spec in top_specs %}
+                <div style="display:flex;align-items:center;
+                            gap:12px;padding:10px 0;
+                            border-bottom:1px solid var(--gray-100)">
+                    <div style="flex:1">
+                        <div style="font-weight:600;
+                                    font-size:0.88rem">
+                            {{ spec.name }}
+                        </div>
+                        <div style="font-size:0.75rem;
+                                    color:var(--gray-400)">
+                            {{ spec.appt_count }} appointments
+                        </div>
+                    </div>
+                    <div class="admin-bar-wrap">
+                        <div class="admin-bar-fill"
+                             style="width:{% if spec.appt_count %}{{ spec.appt_count }}0%{% else %}5%{% endif %}">
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color:var(--gray-400);font-size:0.88rem;
+                           padding:16px 0">
+                    No data yet.
+                </p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Recent Payments -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fas fa-rupee-sign"
+                       style="color:var(--secondary);margin-right:8px"></i>
+                    Recent Payments</h3>
+                <a href="{% url 'admin_panel:payments' %}">View all</a>
+            </div>
+            <div class="panel-body" style="padding:8px 20px 16px">
+                {% for pay in recent_payments %}
+                <div class="appt-item">
+                    <img src="https://ui-avatars.com/api/?name={{ pay.patient.get_full_name }}&background=2563eb&color=fff&size=40"
+                         class="appt-doc-img" alt="">
+                    <div class="appt-info">
+                        <div class="appt-doc-name">
+                            {{ pay.patient.get_full_name }}
+                        </div>
+                        <div class="appt-meta">
+                            <i class="fas fa-calendar"></i>
+                            {{ pay.created_at|date:"M d" }}
+                            &nbsp;·&nbsp;
+                            {{ pay.get_method_display }}
+                        </div>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="font-weight:800;
+                                    color:var(--gray-900)">
+                            ₹{{ pay.amount }}
+                        </div>
+                        <span class="badge
+                            {% if pay.status == 'success' %}badge-success
+                            {% elif pay.status == 'refunded' %}badge-warning
+                            {% else %}badge-danger{% endif %}"
+                              style="font-size:0.65rem">
+                            {{ pay.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <p style="color:var(--gray-400);padding:16px 0;
+                           font-size:0.88rem">
+                    No payments yet.
+                </p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

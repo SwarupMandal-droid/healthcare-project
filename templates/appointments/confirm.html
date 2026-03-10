@@ -1,4 +1,316 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirm & Pay — Lifeline Care{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/booking.css' %}">
+{% endblock %}
+
 {% block content %}
-<h1>Page coming soon</h1>
+
+<div class="booking-wrapper">
+
+    <div class="booking-topbar">
+        <a href="javascript:history.back()" class="back-btn visible">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+        <div class="booking-steps">
+            <div class="bstep done">
+                <span class="bstep-num"><i class="fas fa-check"></i></span>
+                <span class="bstep-label">Date & Time</span>
+            </div>
+            <div class="bstep-line done"></div>
+            <div class="bstep done">
+                <span class="bstep-num"><i class="fas fa-check"></i></span>
+                <span class="bstep-label">Symptoms</span>
+            </div>
+            <div class="bstep-line done"></div>
+            <div class="bstep active">
+                <span class="bstep-num">3</span>
+                <span class="bstep-label">Payment</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="booking-layout">
+
+        <!-- Payment Main -->
+        <div class="booking-main">
+            <h2 style="font-size:1.4rem;margin-bottom:24px">
+                Complete Payment
+            </h2>
+
+            <!-- Order Summary Box -->
+            <div class="booking-section">
+                <h3 class="booking-section-title">
+                    <span class="step-badge">1</span>
+                    Order Summary
+                </h3>
+
+                <div style="display:flex;align-items:center;gap:14px;
+                            padding:16px;background:var(--gray-50);
+                            border-radius:var(--radius-lg);
+                            border:1px solid var(--gray-100)">
+                    {% if doctor.user.profile_photo %}
+                    <img src="{{ doctor.user.profile_photo.url }}"
+                         style="width:52px;height:52px;border-radius:50%;
+                                object-fit:cover">
+                    {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ doctor.user.get_full_name }}&background=2563eb&color=fff&size=52"
+                         style="width:52px;height:52px;border-radius:50%">
+                    {% endif %}
+                    <div style="flex:1">
+                        <p style="font-weight:700">
+                            Dr. {{ doctor.user.get_full_name }}
+                        </p>
+                        <p style="font-size:0.82rem;color:var(--primary)">
+                            {{ doctor.specialization.name }}
+                        </p>
+                    </div>
+                    <div style="text-align:right">
+                        <div style="font-size:0.82rem;color:var(--gray-500)">
+                            {{ date|date:"D, M d Y" }} at {{ time }}
+                        </div>
+                        <div style="font-weight:800;font-size:1.1rem;
+                                    color:var(--primary)">
+                            ₹{{ doctor.consultation_fee }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="booking-section">
+                <h3 class="booking-section-title">
+                    <span class="step-badge">2</span>
+                    Payment Method
+                </h3>
+
+                <!-- Razorpay Card -->
+                <div class="pay-method-card active"
+                     style="cursor:default;margin-bottom:20px">
+                    <div class="pay-method-icon upi-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div>
+                        <p class="pay-method-name">
+                            UPI / Card / Net Banking / Wallets
+                        </p>
+                        <p class="pay-method-sub">
+                            Powered by Razorpay —
+                            All payment methods in one click
+                        </p>
+                    </div>
+                    <div class="pay-method-check">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+
+                <!-- Security Info -->
+                <div style="background:#F0FDF4;border:1px solid #BBF7D0;
+                            border-radius:var(--radius-lg);padding:14px 16px;
+                            display:flex;align-items:center;gap:12px;
+                            margin-bottom:24px">
+                    <i class="fas fa-shield-alt"
+                       style="color:var(--secondary);font-size:1.1rem;
+                              flex-shrink:0"></i>
+                    <div>
+                        <p style="font-weight:600;font-size:0.85rem;
+                                   color:#065F46">
+                            100% Secure Payment via Razorpay
+                        </p>
+                        <p style="font-size:0.76rem;color:#047857;
+                                   margin-top:2px">
+                            Your payment details are encrypted and
+                            never stored on our servers
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Hidden form submitted after Razorpay success -->
+                <form method="POST"
+                      action="{% url 'appointments:payment' %}"
+                      id="paymentForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="razorpay_payment_id"
+                           id="razorpay_payment_id">
+                    <input type="hidden" name="razorpay_order_id"
+                           id="razorpay_order_id">
+                    <input type="hidden" name="razorpay_signature"
+                           id="razorpay_signature">
+                </form>
+
+                <!-- Pay Button -->
+                <button type="button"
+                        class="btn btn-primary btn-lg w-full justify-center"
+                        onclick="openRazorpay()"
+                        id="payBtn">
+                    <i class="fas fa-lock"></i>
+                    Pay ₹{{ doctor.consultation_fee }} Securely
+                </button>
+
+                <p style="text-align:center;font-size:0.78rem;
+                          color:var(--gray-400);margin-top:12px">
+                    <i class="fas fa-shield-alt"></i>
+                    256-bit SSL encrypted · Secured by Razorpay
+                </p>
+
+            </div>
+        </div>
+
+        <!-- Summary Sidebar -->
+        <div class="booking-summary">
+            <h3 style="margin-bottom:20px;font-size:1rem">
+                Appointment Summary
+            </h3>
+
+            <div style="display:flex;align-items:center;gap:14px;
+                        margin-bottom:20px;padding-bottom:20px;
+                        border-bottom:1px solid var(--gray-100)">
+                {% if doctor.user.profile_photo %}
+                <img src="{{ doctor.user.profile_photo.url }}"
+                     style="width:52px;height:52px;border-radius:50%;
+                            object-fit:cover">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ doctor.user.get_full_name }}&background=2563eb&color=fff&size=52"
+                     style="width:52px;height:52px;border-radius:50%">
+                {% endif %}
+                <div>
+                    <p style="font-weight:700">
+                        Dr. {{ doctor.user.get_full_name }}
+                    </p>
+                    <p style="font-size:0.82rem;color:var(--primary)">
+                        {{ doctor.specialization.name }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="summary-row">
+                <span><i class="fas fa-calendar"></i> Date</span>
+                <span>{{ date|date:"D, M d, Y" }}</span>
+            </div>
+            <div class="summary-row">
+                <span><i class="fas fa-clock"></i> Time</span>
+                <span>{{ time }}</span>
+            </div>
+            <div class="summary-row">
+                <span>
+                    <i class="fas fa-notes-medical"></i> Symptoms
+                </span>
+                <span style="max-width:140px;text-align:right;
+                             font-size:0.82rem">
+                    {{ symptoms|truncatechars:40 }}
+                </span>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-row summary-total">
+                <span>Consultation Fee</span>
+                <span>₹{{ doctor.consultation_fee }}</span>
+            </div>
+            <div class="summary-row"
+                 style="font-size:0.82rem;color:var(--gray-400)">
+                <span>Platform Fee</span>
+                <span>₹0</span>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-row summary-total"
+                 style="font-size:1.2rem">
+                <span>Total</span>
+                <span style="color:var(--primary)">
+                    ₹{{ doctor.consultation_fee }}
+                </span>
+            </div>
+
+            <div class="summary-info-box">
+                <i class="fas fa-shield-alt"></i>
+                <p>Secured by Razorpay</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Processing Overlay (shown after Razorpay success) -->
+<div class="payment-processing-overlay" id="processingOverlay">
+    <div class="processing-card">
+        <div class="processing-spinner"></div>
+        <h3 id="processingText">Confirming Appointment...</h3>
+        <p>Please do not close this window</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Razorpay SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+function openRazorpay() {
+
+    {% if not razorpay_order_id %}
+    // Fallback if Razorpay order creation failed
+    alert('Payment gateway unavailable. Please try again.');
+    return;
+    {% endif %}
+
+    const options = {
+        key:         '{{ razorpay_key_id }}',
+        amount:      {{ amount }},
+        currency:    'INR',
+        name:        'Lifeline Care',
+        description: 'Consultation — Dr. {{ doctor.user.get_full_name }}',
+        order_id:    '{{ razorpay_order_id }}',
+        image:       '/static/images/logo.png',
+
+        prefill: {
+            name:    '{{ patient_name }}',
+            email:   '{{ patient_email }}',
+            contact: '{{ patient_phone }}',
+        },
+
+        theme: { color: '#2563EB' },
+
+        handler: function(response) {
+            // Fill hidden form with Razorpay response
+            document.getElementById('razorpay_payment_id').value =
+                response.razorpay_payment_id;
+            document.getElementById('razorpay_order_id').value =
+                response.razorpay_order_id;
+            document.getElementById('razorpay_signature').value =
+                response.razorpay_signature;
+
+            // Show processing overlay
+            document.getElementById('processingOverlay').style.display = 'flex';
+
+            // Submit form to Django for verification
+            document.getElementById('paymentForm').submit();
+        },
+
+        modal: {
+            ondismiss: function() {
+                console.log('Payment cancelled by user.');
+            }
+        }
+    };
+
+    const rzp = new Razorpay(options);
+
+    rzp.on('payment.failed', function(response) {
+        alert(
+            'Payment failed!\n' +
+            'Reason: ' + response.error.description +
+            '\nPlease try again.'
+        );
+    });
+
+    rzp.open();
+}
+</script>
 {% endblock %}

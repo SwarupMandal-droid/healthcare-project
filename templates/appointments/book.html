@@ -1,4 +1,335 @@
-{% extends 'base.html' %}
-{% block content %}
-<h1>Page coming soon</h1>
+{% extends 'patients/base_patient.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Book Appointment — Lifeline Care{% endblock %}
+{% block breadcrumb %}Book Appointment{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/booking.css' %}">
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="booking-wrapper">
+
+    <!-- Back -->
+    <div class="booking-topbar">
+        <a href="{% url 'patients:find_doctors' %}" class="back-btn visible">
+            <i class="fas fa-arrow-left"></i> Back to Doctors
+        </a>
+        <div class="booking-steps">
+            <div class="bstep active">
+                <span class="bstep-num">1</span>
+                <span class="bstep-label">Date & Time</span>
+            </div>
+            <div class="bstep-line"></div>
+            <div class="bstep">
+                <span class="bstep-num">2</span>
+                <span class="bstep-label">Symptoms</span>
+            </div>
+            <div class="bstep-line"></div>
+            <div class="bstep">
+                <span class="bstep-num">3</span>
+                <span class="bstep-label">Payment</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="booking-layout">
+
+        <!-- Left: Date & Time Selection -->
+        <div class="booking-main">
+
+            <!-- Doctor Card -->
+            <div class="booking-doctor-card">
+                {% if doctor.user.profile_photo %}
+                <img src="{{ doctor.user.profile_photo.url }}" alt="">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ doctor.user.get_full_name }}&background=2563eb&color=fff&size=64"
+                     alt="">
+                {% endif %}
+                <div class="booking-doctor-info">
+                    <h3>Dr. {{ doctor.user.get_full_name }}</h3>
+                    <p>{{ doctor.specialization.name }}</p>
+                    <div class="dc-rating">
+                        <i class="fas fa-star"></i>
+                        {{ doctor.rating }} &nbsp;·&nbsp;
+                        {{ doctor.experience_years }} yrs exp &nbsp;·&nbsp;
+                        <i class="fas fa-rupee-sign"></i>
+                        {{ doctor.consultation_fee }} / consultation
+                    </div>
+                </div>
+                <div class="booking-fee-badge">
+                    ₹{{ doctor.consultation_fee }}
+                </div>
+            </div>
+
+            <!-- Step 1: Date Selection -->
+            <div class="booking-section" id="step1">
+                <h3 class="booking-section-title">
+                    <span class="step-badge">1</span>
+                    Select a Date
+                </h3>
+
+                <div class="date-picker-strip">
+                    {% for d in date_list %}
+                    <div class="date-chip
+                         {% if not d.is_working %}date-chip-off{% endif %}"
+                         data-date="{{ d.value }}"
+                         data-working="{{ d.is_working|yesno:'true,false' }}"
+                         onclick="selectDate(this)">
+                        <span class="date-chip-day">{{ d.label }}</span>
+                        <span class="date-chip-num">{{ d.day }}</span>
+                        <span class="date-chip-mon">{{ d.month }}</span>
+                        {% if not d.is_working %}
+                        <span class="date-chip-off-label">Off</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Step 2: Time Slot Selection -->
+            <div class="booking-section" id="step2" style="display:none">
+                <h3 class="booking-section-title">
+                    <span class="step-badge">2</span>
+                    Select a Time Slot
+                    <span id="selectedDateLabel"
+                          style="font-weight:400;font-size:0.88rem;
+                                 color:var(--gray-500);margin-left:8px"></span>
+                </h3>
+
+                <div id="slotsLoading" style="display:none;text-align:center;
+                                              padding:24px">
+                    <div class="spinner" style="margin:0 auto"></div>
+                    <p style="margin-top:12px;color:var(--gray-400)">
+                        Loading available slots...
+                    </p>
+                </div>
+
+                <div class="slots-container" id="slotsContainer"></div>
+            </div>
+
+            <!-- Step 3: Symptoms -->
+            <div class="booking-section" id="step3" style="display:none">
+                <h3 class="booking-section-title">
+                    <span class="step-badge">3</span>
+                    Describe Your Symptoms
+                </h3>
+
+                <form method="POST" action="{% url 'appointments:confirm' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="doctor_id" value="{{ doctor.id }}">
+                    <input type="hidden" name="date" id="hiddenDate">
+                    <input type="hidden" name="time" id="hiddenTime">
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            What's the reason for your visit?
+                        </label>
+                        <textarea name="symptoms"
+                                  class="form-control" rows="4"
+                                  placeholder="Describe your symptoms, pain, or concern in detail..."
+                                  required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">
+                            Additional Notes
+                            <span style="color:var(--gray-400);
+                                         font-weight:400">(optional)</span>
+                        </label>
+                        <textarea name="notes"
+                                  class="form-control" rows="2"
+                                  placeholder="Any allergies, current medications, or previous history...">
+                        </textarea>
+                    </div>
+
+                    <!-- Quick symptom chips -->
+                    <div style="margin-bottom:20px">
+                        <p style="font-size:0.82rem;font-weight:600;
+                                  color:var(--gray-500);margin-bottom:10px">
+                            Quick Select:
+                        </p>
+                        <div style="display:flex;flex-wrap:wrap;gap:8px">
+                            {% for sym in "Chest Pain,Headache,Fever,Shortness of Breath,Back Pain,Fatigue,Dizziness,Nausea"|split:"," %}
+                            <span class="symptom-chip"
+                                  onclick="addSymptom(this)">
+                                {{ sym }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-full
+                                                 justify-center" id="continueBtn">
+                        <i class="fas fa-arrow-right"></i>
+                        Continue to Payment
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- Right: Booking Summary -->
+        <div class="booking-summary" id="bookingSummary">
+            <h3 style="margin-bottom:20px;font-size:1rem">Booking Summary</h3>
+
+            <div class="summary-row">
+                <span><i class="fas fa-user-md"></i> Doctor</span>
+                <span>Dr. {{ doctor.user.get_full_name }}</span>
+            </div>
+            <div class="summary-row">
+                <span><i class="fas fa-stethoscope"></i> Specialization</span>
+                <span>{{ doctor.specialization.name }}</span>
+            </div>
+            <div class="summary-row">
+                <span><i class="fas fa-calendar"></i> Date</span>
+                <span id="summaryDate" style="color:var(--gray-400)">
+                    Not selected
+                </span>
+            </div>
+            <div class="summary-row">
+                <span><i class="fas fa-clock"></i> Time</span>
+                <span id="summaryTime" style="color:var(--gray-400)">
+                    Not selected
+                </span>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-row summary-total">
+                <span>Consultation Fee</span>
+                <span>₹{{ doctor.consultation_fee }}</span>
+            </div>
+            <div class="summary-row" style="font-size:0.82rem;color:var(--gray-400)">
+                <span>Platform Fee</span>
+                <span>₹0</span>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-row summary-total" style="font-size:1.1rem">
+                <span>Total</span>
+                <span style="color:var(--primary)">
+                    ₹{{ doctor.consultation_fee }}
+                </span>
+            </div>
+
+            <div class="summary-info-box">
+                <i class="fas fa-shield-alt"></i>
+                <p>Your payment is 100% secure and encrypted.</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+const DOCTOR_ID   = {{ doctor.id }};
+let selectedDate  = null;
+let selectedTime  = null;
+
+// ── Date Selection ──
+function selectDate(chip) {
+    if (chip.dataset.working === 'false') return;
+
+    document.querySelectorAll('.date-chip').forEach(c =>
+        c.classList.remove('active'));
+    chip.classList.add('active');
+
+    selectedDate = chip.dataset.date;
+    const label  = `${chip.querySelector('.date-chip-day').textContent} ${chip.querySelector('.date-chip-num').textContent} ${chip.querySelector('.date-chip-mon').textContent}`;
+
+    document.getElementById('summaryDate').textContent = label;
+    document.getElementById('summaryDate').style.color = 'var(--gray-900)';
+    document.getElementById('selectedDateLabel').textContent = `— ${label}`;
+
+    loadSlots(selectedDate);
+}
+
+// ── Load Slots via AJAX ──
+function loadSlots(date) {
+    const container = document.getElementById('slotsContainer');
+    const loading   = document.getElementById('slotsLoading');
+    const step2     = document.getElementById('step2');
+
+    step2.style.display    = 'block';
+    loading.style.display  = 'block';
+    container.innerHTML    = '';
+    selectedTime           = null;
+
+    fetch(`/appointments/slots/?doctor_id=${DOCTOR_ID}&date=${date}`)
+        .then(r => r.json())
+        .then(data => {
+            loading.style.display = 'none';
+
+            if (!data.slots.length) {
+                container.innerHTML = `
+                    <div style="text-align:center;padding:32px;color:var(--gray-400)">
+                        <i class="fas fa-calendar-times"
+                           style="font-size:2rem;margin-bottom:12px;display:block"></i>
+                        <p>No slots available for this date.</p>
+                    </div>`;
+                return;
+            }
+
+            let html = '<div class="slots-grid">';
+            data.slots.forEach(slot => {
+                if (slot.available) {
+                    html += `<div class="slot-btn"
+                                  data-time="${slot.time}"
+                                  onclick="selectSlot(this,'${slot.time}','${slot.label}')">
+                                ${slot.label}
+                             </div>`;
+                } else {
+                    html += `<div class="slot-btn slot-booked"
+                                  title="Not available">
+                                ${slot.label}
+                             </div>`;
+                }
+            });
+            html += '</div>';
+            container.innerHTML = html;
+
+            step2.scrollIntoView({ behavior:'smooth', block:'nearest' });
+        })
+        .catch(() => {
+            loading.style.display = 'none';
+            container.innerHTML   = `
+                <p style="color:var(--danger);text-align:center">
+                    Failed to load slots. Please try again.
+                </p>`;
+        });
+}
+
+// ── Slot Selection ──
+function selectSlot(el, time, label) {
+    document.querySelectorAll('.slot-btn').forEach(s =>
+        s.classList.remove('active'));
+    el.classList.add('active');
+
+    selectedTime = time;
+    document.getElementById('hiddenDate').value = selectedDate;
+    document.getElementById('hiddenTime').value = time;
+    document.getElementById('summaryTime').textContent  = label;
+    document.getElementById('summaryTime').style.color  = 'var(--gray-900)';
+
+    // Show symptoms step
+    const step3 = document.getElementById('step3');
+    step3.style.display = 'block';
+    step3.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// ── Quick symptom chips ──
+function addSymptom(el) {
+    const textarea = document.querySelector('textarea[name="symptoms"]');
+    const val      = el.textContent.trim();
+    textarea.value = textarea.value
+        ? textarea.value + ', ' + val
+        : val;
+    el.classList.toggle('active');
+}
+</script>
 {% endblock %}

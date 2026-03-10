@@ -1,0 +1,97 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block title %}Manage Patients — Admin{% endblock %}
+{% block breadcrumb %}Manage Patients{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/admin_panel.css' %}">
+{% endblock %}
+
+{% block dash_content %}
+
+<div style="display:flex;align-items:center;
+            justify-content:space-between;margin-bottom:24px">
+    <h2 style="font-size:1.4rem">Manage Patients</h2>
+    <span class="badge badge-info"
+          style="font-size:0.85rem;padding:8px 14px">
+        {{ patients|length }} total
+    </span>
+</div>
+
+<div class="filter-bar" style="margin-bottom:24px">
+    <div class="filter-group" style="flex:3">
+        <label><i class="fas fa-search"></i> Search</label>
+        <input type="text" placeholder="Search by name or email..."
+               oninput="filterRows(this.value)">
+    </div>
+</div>
+
+<div class="panel-card">
+    <div class="appt-row appt-table-head"
+         style="grid-template-columns:2fr 1.5fr 1fr 1fr 1fr">
+        <span>Patient</span>
+        <span>Email</span>
+        <span>Phone</span>
+        <span>Joined</span>
+        <span>Appointments</span>
+    </div>
+
+    {% for patient in patients %}
+    <div class="appt-row"
+         style="grid-template-columns:2fr 1.5fr 1fr 1fr 1fr"
+         data-search="{{ patient.get_full_name|lower }} {{ patient.email|lower }}">
+
+        <div class="appt-doc-info">
+            <img src="https://ui-avatars.com/api/?name={{ patient.get_full_name }}&background=2563eb&color=fff&size=40"
+                 alt=""
+                 style="width:40px;height:40px;border-radius:50%">
+            <div class="appt-doc-info-text">
+                <strong>{{ patient.get_full_name }}</strong>
+                <span>ID: LC-P-{{ patient.id }}</span>
+            </div>
+        </div>
+
+        <div style="font-size:0.85rem;color:var(--gray-600)">
+            {{ patient.email }}
+        </div>
+
+        <div style="font-size:0.85rem;color:var(--gray-600)">
+            {{ patient.phone|default:"—" }}
+        </div>
+
+        <div style="font-size:0.85rem;color:var(--gray-600)">
+            {{ patient.date_joined|date:"M d, Y" }}
+        </div>
+
+        <div>
+            <span class="badge badge-info">
+                {{ patient.appt_count }} appts
+            </span>
+        </div>
+
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:48px;color:var(--gray-400)">
+        <i class="fas fa-users"
+           style="font-size:2rem;margin-bottom:12px;display:block"></i>
+        <p>No patients found.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+function filterRows(val) {
+    const search = val.toLowerCase();
+    document.querySelectorAll('.appt-row:not(.appt-table-head)')
+    .forEach(row => {
+        const text = row.dataset.search || '';
+        row.style.display = !search || text.includes(search) ? '' : 'none';
+    });
+}
+</script>
+{% endblock %}

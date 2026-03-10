@@ -30,7 +30,7 @@
             <i class="fas fa-file-prescription"></i>
         </div>
         <div class="dsc-info">
-            <div class="dsc-value">5</div>
+            <div class="dsc-value">{{ counts.prescriptions }}</div>
             <div class="dsc-label">Prescriptions</div>
         </div>
     </div>
@@ -39,7 +39,7 @@
             <i class="fas fa-flask"></i>
         </div>
         <div class="dsc-info">
-            <div class="dsc-value">3</div>
+            <div class="dsc-value">{{ counts.lab_reports }}</div>
             <div class="dsc-label">Lab Reports</div>
         </div>
     </div>
@@ -48,7 +48,7 @@
             <i class="fas fa-utensils"></i>
         </div>
         <div class="dsc-info">
-            <div class="dsc-value">2</div>
+            <div class="dsc-value">{{ counts.diet_charts }}</div>
             <div class="dsc-label">Diet Charts</div>
         </div>
     </div>
@@ -57,7 +57,7 @@
             <i class="fas fa-notes-medical"></i>
         </div>
         <div class="dsc-info">
-            <div class="dsc-value">3</div>
+            <div class="dsc-value">{{ counts.medical_notes }}</div>
             <div class="dsc-label">Medical Notes</div>
         </div>
     </div>
@@ -65,127 +65,37 @@
 
 <!-- Documents Grid -->
 <div class="documents-grid">
-
-    <!-- Prescription -->
-    <div class="doc-card" onclick="openDocPreview('prescription')">
-        <div class="doc-card-icon" style="background:#EFF6FF;color:var(--primary)">
-            <i class="fas fa-file-prescription"></i>
+    {% for doc in documents %}
+    <div class="doc-card" onclick="openDocPreview('{{ doc.title }}', '{{ doc.file.url }}', '{{ doc.doc_type }}')">
+        <div class="doc-card-icon" 
+             style="background: {% if doc.doc_type == 'prescription' %}#EFF6FF{% elif doc.doc_type == 'lab_report' %}#D1FAE5{% elif doc.doc_type == 'diet_chart' %}#FEF3C7{% else %}#FEE2E2{% endif %};
+                    color: {% if doc.doc_type == 'prescription' %}var(--primary){% elif doc.doc_type == 'lab_report' %}var(--secondary){% elif doc.doc_type == 'diet_chart' %}var(--accent){% else %}var(--danger){% endif %};">
+            {% if doc.doc_type == 'prescription' %}<i class="fas fa-file-prescription"></i>
+            {% elif doc.doc_type == 'lab_report' %}<i class="fas fa-flask"></i>
+            {% elif doc.doc_type == 'diet_chart' %}<i class="fas fa-utensils"></i>
+            {% else %}<i class="fas fa-notes-medical"></i>{% endif %}
         </div>
-        <div class="doc-card-name">Prescription — Cardiology</div>
+        <div class="doc-card-name">{{ doc.title }}</div>
         <div class="doc-card-meta">
-            <i class="fas fa-user-md"></i> Dr. Priya Sharma &nbsp;|&nbsp;
-            <i class="fas fa-calendar"></i> Feb 20, 2025
+            <i class="fas fa-user-md"></i> Dr. {{ doc.doctor.user.get_full_name }} &nbsp;|&nbsp;
+            <i class="fas fa-calendar"></i> {{ doc.uploaded_at|date:"M d, Y" }}
         </div>
         <div class="doc-card-actions">
-            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openDocPreview('prescription')">
+            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); openDocPreview('{{ doc.title }}', '{{ doc.file.url }}', '{{ doc.doc_type }}')">
                 <i class="fas fa-eye"></i> Preview
             </button>
-            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation()">
+            <a href="{{ doc.file.url }}" download class="btn btn-primary btn-sm" onclick="event.stopPropagation()">
                 <i class="fas fa-download"></i> Download
-            </button>
+            </a>
         </div>
     </div>
-
-    <!-- Lab Report -->
-    <div class="doc-card" onclick="openDocPreview('lab')">
-        <div class="doc-card-icon" style="background:#D1FAE5;color:var(--secondary)">
-            <i class="fas fa-flask"></i>
-        </div>
-        <div class="doc-card-name">Blood Test Report</div>
-        <div class="doc-card-meta">
-            <i class="fas fa-user-md"></i> Dr. Rohit Verma &nbsp;|&nbsp;
-            <i class="fas fa-calendar"></i> Feb 15, 2025
-        </div>
-        <div class="doc-card-actions">
-            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openDocPreview('lab')">
-                <i class="fas fa-eye"></i> Preview
-            </button>
-            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation()">
-                <i class="fas fa-download"></i> Download
-            </button>
-        </div>
+    {% empty %}
+    <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--gray-400);">
+        <i class="fas fa-file-medical" style="font-size: 3rem; margin-bottom: 16px; display: block;"></i>
+        <h3>No documents found</h3>
+        <p>Your medical records and prescriptions will appear here once uploaded by a doctor.</p>
     </div>
-
-    <!-- Diet Chart -->
-    <div class="doc-card" onclick="openDocPreview('diet')">
-        <div class="doc-card-icon" style="background:#FEF3C7;color:var(--accent)">
-            <i class="fas fa-utensils"></i>
-        </div>
-        <div class="doc-card-name">Weekly Diet Chart</div>
-        <div class="doc-card-meta">
-            <i class="fas fa-user-md"></i> Dr. Priya Sharma &nbsp;|&nbsp;
-            <i class="fas fa-calendar"></i> Feb 20, 2025
-        </div>
-        <div class="doc-card-actions">
-            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openDocPreview('diet')">
-                <i class="fas fa-eye"></i> Preview
-            </button>
-            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation()">
-                <i class="fas fa-download"></i> Download
-            </button>
-        </div>
-    </div>
-
-    <!-- Medical Note -->
-    <div class="doc-card" onclick="openDocPreview('note')">
-        <div class="doc-card-icon" style="background:#FEE2E2;color:var(--danger)">
-            <i class="fas fa-notes-medical"></i>
-        </div>
-        <div class="doc-card-name">Medical Notes — Neurology</div>
-        <div class="doc-card-meta">
-            <i class="fas fa-user-md"></i> Dr. Rohit Verma &nbsp;|&nbsp;
-            <i class="fas fa-calendar"></i> Jan 30, 2025
-        </div>
-        <div class="doc-card-actions">
-            <button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openDocPreview('note')">
-                <i class="fas fa-eye"></i> Preview
-            </button>
-            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation()">
-                <i class="fas fa-download"></i> Download
-            </button>
-        </div>
-    </div>
-
-    <!-- X-Ray -->
-    <div class="doc-card">
-        <div class="doc-card-icon" style="background:#F3E8FF;color:#7C3AED">
-            <i class="fas fa-x-ray"></i>
-        </div>
-        <div class="doc-card-name">Chest X-Ray Report</div>
-        <div class="doc-card-meta">
-            <i class="fas fa-user-md"></i> Dr. Arjun Mehta &nbsp;|&nbsp;
-            <i class="fas fa-calendar"></i> Jan 10, 2025
-        </div>
-        <div class="doc-card-actions">
-            <button class="btn btn-outline btn-sm">
-                <i class="fas fa-eye"></i> Preview
-            </button>
-            <button class="btn btn-primary btn-sm">
-                <i class="fas fa-download"></i> Download
-            </button>
-        </div>
-    </div>
-
-    <!-- ECG -->
-    <div class="doc-card">
-        <div class="doc-card-icon" style="background:#ECFDF5;color:#059669">
-            <i class="fas fa-heartbeat"></i>
-        </div>
-        <div class="doc-card-name">ECG Report</div>
-        <div class="doc-card-meta">
-            <i class="fas fa-user-md"></i> Dr. Priya Sharma &nbsp;|&nbsp;
-            <i class="fas fa-calendar"></i> Dec 28, 2024
-        </div>
-        <div class="doc-card-actions">
-            <button class="btn btn-outline btn-sm">
-                <i class="fas fa-eye"></i> Preview
-            </button>
-            <button class="btn btn-primary btn-sm">
-                <i class="fas fa-download"></i> Download
-            </button>
-        </div>
-    </div>
-
+    {% endfor %}
 </div>
 
 <!-- Document Preview Modal -->
@@ -194,16 +104,18 @@
         <div class="modal-header">
             <h3 id="docPreviewTitle">Document Preview</h3>
             <div style="display:flex;gap:8px;align-items:center">
-                <button class="btn btn-primary btn-sm">
+                <a href="#" id="docDownloadBtn" download class="btn btn-primary btn-sm">
                     <i class="fas fa-download"></i> Download
-                </button>
+                </a>
                 <button class="modal-close" onclick="closeModal('docPreviewModal')">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
         <div class="modal-body">
-            <div id="docPreviewContent" class="doc-preview-body"></div>
+            <div id="docPreviewContent" class="doc-preview-body" style="text-align: center; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                <!-- Dynamically populated -->
+            </div>
         </div>
     </div>
 </div>
@@ -348,13 +260,36 @@ const docPreviews = {
     }
 };
 
-function openDocPreview(type) {
-    const data = docPreviews[type];
-    if (!data) return;
-    document.getElementById('docPreviewTitle').textContent = data.title;
-    document.getElementById('docPreviewContent').innerHTML = data.html;
+function openDocPreview(title, url, type) {
+    document.getElementById('docPreviewTitle').textContent = title;
+    document.getElementById('docDownloadBtn').href = url;
+    
+    let content = '';
+    const ext = url.split('.').pop().toLowerCase();
+    
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+        content = `<img src="${url}" style="max-width:100%; max-height:70vh; border-radius:8px; border:1px solid var(--gray-200)">`;
+    } else if (ext === 'pdf') {
+        content = `<iframe src="${url}" style="width:100%; height:70vh; border:none; border-radius:8px"></iframe>`;
+    } else {
+        content = `
+            <div style="padding:40px; background:var(--gray-50); border-radius:12px; border:2px dashed var(--gray-200)">
+                <i class="fas fa-file-alt" style="font-size:3rem; color:var(--gray-400); margin-bottom:16px; display:block"></i>
+                <p style="color:var(--gray-600)">Preview not available for this file type.</p>
+                <a href="${url}" download class="btn btn-primary" style="margin-top:16px">
+                    <i class="fas fa-download"></i> Download to View
+                </a>
+            </div>`;
+    }
+    
+    document.getElementById('docPreviewContent').innerHTML = content;
     document.getElementById('docPreviewModal').classList.add('open');
     document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow = '';
 }
 </script>
 {% endblock %}

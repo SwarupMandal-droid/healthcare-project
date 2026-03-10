@@ -7,6 +7,12 @@
 
     <!-- ===== SIDEBAR ===== -->
     <aside class="sidebar" id="sidebar">
+        <a href="{% url 'ai_assistant:chat' %}"
+   class="sidebar-link {% if 'ai' in request.path %}active{% endif %}">
+    <i class="fas fa-robot"></i>
+    <span>AI Assistant</span>
+    <span class="nav-badge ai-badge">AI</span>
+</a>   
 
         <!-- Logo -->
         <div class="sidebar-logo">
@@ -53,7 +59,16 @@
                class="sidebar-link {% if request.resolver_match.url_name == 'appointments' %}active{% endif %}">
                 <i class="fas fa-calendar-check"></i>
                 <span>My Appointments</span>
-                <span class="nav-badge">3</span>
+                {% if upcoming_count > 0 %}
+                <span class="nav-badge">{{ upcoming_count }}</span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'notifications:all' %}"
+               class="sidebar-link
+               {% if 'notifications' in request.path %}active{% endif %}">
+                <i class="fas fa-bell"></i>
+                <span>Notifications</span>
             </a>
 
             <a href="{% url 'patients:documents' %}"
@@ -117,56 +132,53 @@
                     <input type="text" placeholder="Search doctors, symptoms...">
                 </div>
 
-                <!-- Notifications -->
-                <div class="header-icon-btn notif-btn" id="notifBtn">
-                    <i class="fas fa-bell"></i>
-                    <span class="notif-dot"></span>
+                <!-- Notification Bell -->
+                <div class="notif-wrap" id="notifWrap">
+                    <button class="notif-btn" id="notifBtn"
+                            onclick="toggleNotifDropdown()">
+                        <i class="fas fa-bell"></i>
+                        <span class="notif-badge" id="notifBadge"
+                              style="display:none">0</span>
+                    </button>
 
-                    <!-- Notification Dropdown -->
                     <div class="notif-dropdown" id="notifDropdown">
-                        <div class="notif-header">
+                        <div class="notif-dropdown-header">
                             <h4>Notifications</h4>
-                            <a href="#">Mark all read</a>
+                            <button onclick="markAllRead()"
+                                    style="font-size:0.75rem;color:var(--primary);
+                                           background:none;border:none;cursor:pointer;
+                                           font-weight:600">
+                                Mark all read
+                            </button>
                         </div>
-                        <div class="notif-list">
-                            <div class="notif-item unread">
-                                <div class="notif-icon appt-icon">
-                                    <i class="fas fa-calendar-check"></i>
-                                </div>
-                                <div class="notif-body">
-                                    <p>Appointment confirmed with <strong>Dr. Sharma</strong></p>
-                                    <span>Today, 10:30 AM</span>
-                                </div>
-                            </div>
-                            <div class="notif-item unread">
-                                <div class="notif-icon doc-icon">
-                                    <i class="fas fa-file-medical"></i>
-                                </div>
-                                <div class="notif-body">
-                                    <p><strong>Dr. Verma</strong> uploaded your prescription</p>
-                                    <span>Yesterday, 3:15 PM</span>
-                                </div>
-                            </div>
-                            <div class="notif-item">
-                                <div class="notif-icon pay-icon">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="notif-body">
-                                    <p>Payment of <strong>₹500</strong> successful</p>
-                                    <span>2 days ago</span>
-                                </div>
+
+                        <div class="notif-list" id="notifList">
+                            <div style="text-align:center;padding:32px;
+                                        color:var(--gray-400)">
+                                <i class="fas fa-bell"
+                                   style="font-size:1.5rem;margin-bottom:8px;
+                                          display:block;opacity:0.3"></i>
+                                <p style="font-size:0.85rem">Loading...</p>
                             </div>
                         </div>
-                        <div class="notif-footer">
-                            <a href="#">View all notifications</a>
+
+                        <div class="notif-dropdown-footer">
+                            <a href="{% url 'notifications:all' %}">
+                                View all notifications
+                            </a>
                         </div>
                     </div>
                 </div>
 
                 <!-- Profile -->
                 <div class="header-profile">
-                    <img src="https://i.pravatar.cc/36?img=5" alt="Profile">
-                    <span class="hide-mobile">Ananya</span>
+                    {% if request.user.profile_photo %}
+                    <img src="{{ request.user.profile_photo.url }}" alt="Profile">
+                    {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name }}&background=2563eb&color=fff&size=36"
+                         alt="Profile">
+                    {% endif %}
+                    <span class="hide-mobile">{{ request.user.first_name }}</span>
                     <i class="fas fa-chevron-down hide-mobile" style="font-size:0.7rem;color:var(--gray-400)"></i>
                 </div>
             </div>

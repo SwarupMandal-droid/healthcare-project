@@ -1,3 +1,4 @@
+import datetime
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -43,12 +44,21 @@ def dashboard(request):
         )
     )
 
+    hour = datetime.datetime.now().hour
+    if hour < 12:
+        greeting = 'Good Morning'
+    elif hour < 18:
+        greeting = 'Good Afternoon'
+    else:
+        greeting = 'Good Evening'
+
     context = {
         'profile':     profile,
         'upcoming':    upcoming,
         'completed':   completed,
         'doc_count':   doc_count,
         'total_spent': total_spent,
+        'greeting':    greeting,
     }
     return render(request, 'patients/dashboard.html', context)
 
@@ -59,11 +69,9 @@ def find_doctors(request):
         return redirect('accounts:auth')
 
     from doctors.models import DoctorProfile, Specialization
-    doctors = DoctorProfile.objects.filter(
-        is_available=True
-    ).select_related('user', 'specialization')
 
-    # Filters
+    doctors = DoctorProfile.objects.all().select_related('user', 'specialization')
+
     spec_filter  = request.GET.get('spec', '')
     search_query = request.GET.get('search', '')
 
@@ -71,12 +79,11 @@ def find_doctors(request):
         doctors = doctors.filter(specialization__slug=spec_filter)
 
     if search_query:
+        from django.db.models import Q
         doctors = doctors.filter(
-            user__first_name__icontains=search_query
-        ) | doctors.filter(
-            user__last_name__icontains=search_query
-        ) | doctors.filter(
-            specialization__name__icontains=search_query
+            Q(user__first_name__icontains=search_query) |
+            Q(user__last_name__icontains=search_query)  |
+            Q(specialization__name__icontains=search_query)
         )
 
     specializations = Specialization.objects.all()
@@ -96,18 +103,16 @@ def my_appointments(request):
         return redirect('accounts:auth')
 
     from appointments.models import Appointment
-    upcoming  = Appointment.objects.filter(
-        patient=request.user,
+    base_qs = Appointment.objects.filter(patient=request.user).select_related(
+        'doctor__user', 'doctor__specialization'
+    )
+
+    upcoming  = base_qs.filter(
         status__in=['pending','confirmed']
     ).order_by('appointment_date','start_time')
 
-    completed = Appointment.objects.filter(
-        patient=request.user, status='completed'
-    ).order_by('-appointment_date')
-
-    cancelled = Appointment.objects.filter(
-        patient=request.user, status='cancelled'
-    ).order_by('-appointment_date')
+    completed = base_qs.filter(status='completed').order_by('-appointment_date')
+    cancelled = base_qs.filter(status='cancelled').order_by('-appointment_date')
 
     context = {
         'upcoming':  upcoming,
@@ -124,12 +129,24 @@ def my_documents(request):
 
     from doctors.models import PatientDocument
     doc_type = request.GET.get('type', '')
-    documents = PatientDocument.objects.filter(patient=request.user)
+    documents = PatientDocument.objects.filter(patient=request.user).select_related('doctor__user')
 
     if doc_type:
         documents = documents.filter(doc_type=doc_type)
 
-    context = {'documents': documents, 'doc_type': doc_type}
+    # Category counts for stats
+    counts = {
+        'prescriptions': documents.filter(doc_type='prescription').count(),
+        'lab_reports':   documents.filter(doc_type='lab_report').count(),
+        'diet_charts':   documents.filter(doc_type='diet_chart').count(),
+        'medical_notes': documents.filter(doc_type='medical_notes').count(),
+    }
+
+    context = {
+        'documents': documents, 
+        'doc_type':  doc_type,
+        'counts':    counts
+    }
     return render(request, 'patients/documents.html', context)
 
 
@@ -154,7 +171,7 @@ def payment_history(request):
     this_month  = sum(
         p.amount for p in payments.filter(
             status='success',
-            created_at__month=__import__('datetime').date.today().month
+            created_at__month=datetime.date.today().month
         )
     )
     refunded = sum(p.amount for p in payments.filter(status='refunded'))

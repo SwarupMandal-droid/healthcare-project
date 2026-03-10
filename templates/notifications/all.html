@@ -1,0 +1,115 @@
+{% extends 'patients/base_patient.html' %}
+{% load static %}
+
+{% block title %}All Notifications — Lifeline Care{% endblock %}
+{% block breadcrumb %}Notifications{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+{% endblock %}
+
+{% block dash_content %}
+
+<div style="display:flex;align-items:center;
+            justify-content:space-between;margin-bottom:24px">
+    <h2 style="font-size:1.4rem">All Notifications</h2>
+    <button class="btn btn-outline btn-sm" onclick="markAllRead()">
+        <i class="fas fa-check-double"></i> Mark All Read
+    </button>
+</div>
+
+<div class="panel-card">
+    {% for notif in notifications %}
+
+    <div class="notif-item"
+         style="{% if not notif.is_read %}background:#F8FAFF;{% endif %}
+                padding:18px 24px;border-radius:0;border-bottom:1px solid var(--gray-50)"
+         onclick="window.location.href='{{ notif.link|default:'#' }}'">
+
+        <div class="notif-icon-wrap"
+             style="width:44px;height:44px;
+             {% if notif.category == 'appointment' %}background:#EFF6FF;
+             {% elif notif.category == 'payment' %}background:#D1FAE5;
+             {% elif notif.category == 'health' %}background:#FEE2E2;
+             {% else %}background:#FEF3C7;{% endif %}">
+            
+            <i class="{% if notif.category == 'appointment' %}fas fa-calendar-check
+                      {% elif notif.category == 'payment' %}fas fa-rupee-sign
+                      {% elif notif.category == 'health' %}fas fa-heartbeat
+                      {% else %}fas fa-bell{% endif %}" 
+               style="{% if notif.category == 'appointment' %}color:#2563EB;
+                      {% elif notif.category == 'payment' %}color:#059669;
+                      {% elif notif.category == 'health' %}color:#DC2626;
+                      {% else %}color:#D97706;{% endif %}"></i>
+        </div>
+
+        <div class="notif-content">
+            <div class="notif-title" style="font-size:0.92rem;display:flex;align-items:center;gap:8px">
+                {% if not notif.is_read %}
+                <span class="notif-unread-dot"></span>
+                {% endif %}
+                {{ notif.title }}
+            </div>
+            <div class="notif-msg"
+                 style="white-space:normal;font-size:0.85rem;
+                        color:var(--gray-600);margin-top:2px">
+                {{ notif.message }}
+            </div>
+            <div class="notif-time" style="margin-top:6px;font-size:0.75rem;color:var(--gray-400)">
+                {{ notif.created_at|timesince }} ago
+            </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;
+                    flex-shrink:0">
+            {% if not notif.is_read %}
+            <span class="badge badge-info"
+                  style="font-size:0.65rem;background:var(--primary);color:white;padding:2px 8px;border-radius:100px">New</span>
+            {% endif %}
+            
+            <form method="POST"
+                  action="{% url 'notifications:delete' notif.id %}"
+                  onsubmit="event.stopPropagation()">
+                {% csrf_token %}
+                <button type="submit"
+                        class="btn btn-sm"
+                        style="padding:4px;color:var(--gray-300);
+                               background:none;border:none;cursor:pointer"
+                        onclick="event.stopPropagation()"
+                        title="Delete">
+                    <i class="fas fa-times"></i>
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    {% empty %}
+    <div style="text-align:center;padding:80px 32px;color:var(--gray-400)">
+        <i class="fas fa-bell-slash"
+           style="font-size:3.5rem;margin-bottom:20px;
+                  display:block;opacity:0.1"></i>
+        <h3 style="margin-bottom:8px;color:var(--gray-600)">No notifications yet</h3>
+        <p style="font-size:0.9rem">
+            You'll see appointment updates, payment alerts,
+            and health reminders here.
+        </p>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
+
+{% block page_js %}
+<script>
+async function markAllRead() {
+    await fetch('/notifications/mark-read/', {
+        method:  'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+    });
+    window.location.reload();
+}
+</script>
+{% endblock %}

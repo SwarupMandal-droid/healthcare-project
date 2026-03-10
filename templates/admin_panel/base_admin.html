@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="patient-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <span>Lifeline <strong>Admin</strong></span>
+        </div>
+
+        <div class="sidebar-user">
+            <div class="sidebar-avatar">
+                <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name }}&background=7c3aed&color=fff"
+                     alt="Admin">
+                <span class="online-indicator"></span>
+            </div>
+            <div class="sidebar-user-info">
+                <p class="sidebar-user-name">
+                    {{ request.user.get_full_name }}
+                </p>
+                <p class="sidebar-user-role"
+                   style="color:#7C3AED">
+                    <i class="fas fa-circle"></i> Administrator
+                </p>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <p class="nav-section-label">Overview</p>
+
+            <a href="{% url 'admin_panel:dashboard' %}"
+               class="sidebar-link
+               {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-chart-pie"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <p class="nav-section-label">Management</p>
+
+            <a href="{% url 'admin_panel:doctors' %}"
+               class="sidebar-link
+               {% if request.resolver_match.url_name == 'doctors' %}active{% endif %}">
+                <i class="fas fa-user-md"></i>
+                <span>Doctors</span>
+                {% if pending_doctors_count %}
+                <span class="nav-badge"
+                      style="background:var(--danger)">
+                    {{ pending_doctors_count }}
+                </span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'admin_panel:patients' %}"
+               class="sidebar-link
+               {% if request.resolver_match.url_name == 'patients' %}active{% endif %}">
+                <i class="fas fa-users"></i>
+                <span>Patients</span>
+            </a>
+
+            <a href="{% url 'admin_panel:appointments' %}"
+               class="sidebar-link
+               {% if request.resolver_match.url_name == 'appointments' %}active{% endif %}">
+                <i class="fas fa-calendar-check"></i>
+                <span>Appointments</span>
+            </a>
+
+            <a href="{% url 'admin_panel:payments' %}"
+               class="sidebar-link
+               {% if request.resolver_match.url_name == 'payments' %}active{% endif %}">
+                <i class="fas fa-rupee-sign"></i>
+                <span>Payments</span>
+            </a>
+
+            <p class="nav-section-label">System</p>
+
+            <a href="/django-admin/" class="sidebar-link">
+                <i class="fas fa-cog"></i>
+                <span>Django Admin</span>
+            </a>
+
+            <a href="{% url 'accounts:logout' %}"
+               class="sidebar-link logout-link">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"
+         onclick="toggleSidebar()"></div>
+
+    <!-- MAIN -->
+    <div class="patient-main">
+        <header class="dash-header">
+            <div class="dash-header-left">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="dash-breadcrumb">
+                    {% block breadcrumb %}Dashboard{% endblock %}
+                </div>
+            </div>
+            <div class="dash-header-right">
+                <div class="header-profile">
+                    <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name }}&background=7c3aed&color=fff&size=36"
+                         alt="">
+                    <span class="hide-mobile">
+                        {{ request.user.first_name }}
+                    </span>
+                </div>
+            </div>
+        </header>
+
+        <main class="dash-content">
+            {% block dash_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/patient_dashboard.js' %}"></script>
+{% block page_js %}{% endblock %}
+{% endblock %}

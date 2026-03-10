@@ -1,0 +1,35 @@
+/* =============================================
+   LIFELINE CARE — ADMIN PANEL STYLES
+   ============================================= */
+
+/* Purple accent for admin */
+.sidebar-link.active {
+    background: #EDE9FE;
+    color: #7C3AED;
+}
+
+.sidebar-link.active::before {
+    background: #7C3AED;
+}
+
+/* Bar chart for specializations */
+.admin-bar-wrap {
+    width: 100px;
+    height: 8px;
+    background: var(--gray-100);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.admin-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #7C3AED, #A78BFA);
+    border-radius: 4px;
+    transition: width 1s ease;
+    max-width: 100%;
+}
+
+/* Payment row override for 6 columns */
+.payment-row {
+    grid-template-columns: 2fr 1.5fr 0.8fr 0.8fr 1fr 1fr !important;
+}

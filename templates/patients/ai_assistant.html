@@ -1,4 +1,437 @@
-{% extends 'base.html' %}
-{% block content %}
-<h1>Page coming soon</h1>
+{% extends 'patients/base_patient.html' %}
+{% load static %}
+
+{% block title %}AI Health Assistant — Lifeline Care{% endblock %}
+{% block breadcrumb %}AI Health Assistant{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/ai_assistant.css' %}">
+{% endblock %}
+
+{% block dash_content %}
+
+<div class="ai-layout">
+
+    <!-- ── Left: Chat Window ── -->
+    <div class="ai-chat-panel">
+
+        <!-- Chat Header -->
+        <div class="ai-chat-header">
+            <div class="ai-avatar-wrap">
+                <div class="ai-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <span class="ai-online-dot"></span>
+            </div>
+            <div class="ai-header-info">
+                <h3>LifelineAI</h3>
+                <p>
+                    <span class="ai-status-dot"></span>
+                    Online · Health Assistant
+                </p>
+            </div>
+            <div class="ai-header-actions">
+                <button class="btn btn-sm btn-outline"
+                        onclick="clearChat()"
+                        title="Clear conversation">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="ai-messages" id="aiMessages">
+
+            <!-- Welcome message -->
+            {% if not messages %}
+            <div class="ai-welcome">
+                <div class="ai-welcome-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3>Hi {{ request.user.first_name }}, I'm LifelineAI!</h3>
+                <p>I can help you understand symptoms, suggest specialists,
+                   and answer health questions. How can I help you today?</p>
+                <div class="ai-quick-chips">
+                    <button class="ai-chip"
+                            onclick="sendQuick('I have a headache and fever, what could it be?')">
+                        🤒 Headache & Fever
+                    </button>
+                    <button class="ai-chip"
+                            onclick="sendQuick('I have chest pain, should I be worried?')">
+                        💔 Chest Pain
+                    </button>
+                    <button class="ai-chip"
+                            onclick="sendQuick('Which doctor should I see for back pain?')">
+                        🦴 Back Pain
+                    </button>
+                    <button class="ai-chip"
+                            onclick="sendQuick('What are some tips for better sleep?')">
+                        😴 Sleep Tips
+                    </button>
+                    <button class="ai-chip"
+                            onclick="sendQuick('I feel anxious and stressed lately')">
+                        🧠 Anxiety & Stress
+                    </button>
+                    <button class="ai-chip"
+                            onclick="sendQuick('What foods should I avoid for high blood pressure?')">
+                        🫀 High BP Diet
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Load existing messages from DB -->
+            {% for msg in messages %}
+            <div class="ai-message-row {% if msg.sender == 'user' %}user-row{% else %}ai-row{% endif %}">
+                {% if msg.sender == 'ai' %}
+                <div class="msg-avatar ai-msg-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                {% endif %}
+
+                <div class="msg-bubble {% if msg.sender == 'user' %}user-bubble{% else %}ai-bubble{% endif %}">
+                    {% if msg.sender == 'ai' %}
+                    <div class="msg-content markdown-body"
+                         data-raw="{{ msg.message }}">
+                    </div>
+                    {% else %}
+                    <div class="msg-content">{{ msg.message }}</div>
+                    {% endif %}
+                    <div class="msg-time">
+                        {{ msg.created_at|time:"g:i A" }}
+                    </div>
+                </div>
+
+                {% if msg.sender == 'user' %}
+                <div class="msg-avatar user-msg-avatar">
+                    {{ request.user.first_name|first|upper }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <!-- Typing Indicator (hidden by default) -->
+        <div class="ai-typing" id="aiTyping" style="display:none">
+            <div class="msg-avatar ai-msg-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="typing-bubble">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="ai-input-area">
+            <div class="ai-input-wrap">
+                <textarea id="chatInput"
+                          class="ai-textarea"
+                          placeholder="Ask me about your symptoms, medications, or health tips..."
+                          rows="1"
+                          onkeydown="handleKey(event)"
+                          oninput="autoResize(this)">
+                </textarea>
+                <button class="ai-send-btn" id="sendBtn"
+                        onclick="sendMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <p class="ai-disclaimer">
+                <i class="fas fa-shield-alt"></i>
+                LifelineAI provides general health information only.
+                Always consult a qualified doctor for medical advice.
+            </p>
+        </div>
+
+    </div>
+
+    <!-- ── Right: Info Panel ── -->
+    <div class="ai-info-panel">
+
+        <!-- Capabilities Card -->
+        <div class="ai-info-card">
+            <h4><i class="fas fa-magic"></i> What I can help with</h4>
+            <ul class="ai-capability-list">
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    Explain your symptoms
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    Suggest the right specialist
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    General medication questions
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    Diet & nutrition advice
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    Mental health support
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    Wellness & lifestyle tips
+                </li>
+                <li>
+                    <i class="fas fa-times-circle" style="color:var(--danger)"></i>
+                    Cannot diagnose conditions
+                </li>
+                <li>
+                    <i class="fas fa-times-circle" style="color:var(--danger)"></i>
+                    Cannot prescribe medicine
+                </li>
+            </ul>
+        </div>
+
+        <!-- Emergency Card -->
+        <div class="ai-emergency-card">
+            <div class="ai-emergency-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h4>Medical Emergency?</h4>
+            <p>If you have severe chest pain, difficulty breathing,
+               or any life-threatening symptoms — don't wait.</p>
+            <a href="tel:112" class="btn btn-danger w-full justify-center"
+               style="margin-top:12px">
+                <i class="fas fa-phone"></i> Call 112
+            </a>
+        </div>
+
+        <!-- Book Doctor Card -->
+        <div class="ai-info-card">
+            <h4><i class="fas fa-user-md"></i> Talk to a Real Doctor</h4>
+            <p style="font-size:0.85rem;color:var(--gray-500);margin-bottom:16px">
+                Get a proper diagnosis from our verified specialists.
+            </p>
+            <a href="{% url 'patients:find_doctors' %}"
+               class="btn btn-primary w-full justify-center">
+                <i class="fas fa-calendar-plus"></i> Book Appointment
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block page_js %}
+<!-- Marked.js for markdown rendering -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+
+<script>
+const CSRF_TOKEN = '{{ csrf_token }}';
+
+// ── Render existing markdown messages on load ──
+document.querySelectorAll('.markdown-body[data-raw]').forEach(el => {
+    el.innerHTML = marked.parse(el.dataset.raw);
+});
+
+// ── Auto-scroll to bottom ──
+function scrollToBottom() {
+    const container = document.getElementById('aiMessages');
+    container.scrollTop = container.scrollHeight;
+}
+scrollToBottom();
+
+// ── Handle Enter key ──
+function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+}
+
+// ── Auto-resize textarea ──
+function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+// ── Quick suggestion chips ──
+function sendQuick(text) {
+    document.getElementById('chatInput').value = text;
+    sendMessage();
+}
+
+// ── Send Message ──
+async function sendMessage() {
+    const input   = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const text    = input.value.trim();
+
+    if (!text) return;
+
+    input.value        = '';
+    input.style.height = 'auto';
+
+    // Hide welcome screen if visible
+    const welcome = document.querySelector('.ai-welcome');
+    if (welcome) welcome.remove();
+
+    // Add user message to UI
+    appendUserMessage(text);
+
+    // Show typing indicator
+    sendBtn.disabled = true;
+    document.getElementById('aiTyping').style.display = 'flex';
+    scrollToBottom();
+
+    try {
+        const res = await fetch('/ai/message/', {
+            method:  'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken':  CSRF_TOKEN,
+            },
+            body: JSON.stringify({ message: text }),
+        });
+
+        const data = await res.json();
+
+        document.getElementById('aiTyping').style.display = 'none';
+
+        if (data.error) {
+            appendBotMessage({
+                message: '⚠️ ' + data.error,
+                buttons: [],
+                quick_replies: [],
+            });
+        } else {
+            appendBotMessage(data);
+        }
+
+    } catch (err) {
+        document.getElementById('aiTyping').style.display = 'none';
+        appendBotMessage({
+            message:       '🔌 Connection error. Please check your internet and try again.',
+            buttons:       [],
+            quick_replies: [],
+        });
+    }
+
+    sendBtn.disabled = false;
+    scrollToBottom();
+}
+
+
+// ── Append USER message ──
+function appendUserMessage(text) {
+    const container = document.getElementById('aiMessages');
+    const now       = new Date().toLocaleTimeString(
+                          'en-US', { hour: 'numeric', minute: '2-digit' });
+
+    const escaped = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    const row       = document.createElement('div');
+    row.className   = 'ai-message-row user-row';
+    row.innerHTML   = `
+        <div class="msg-bubble user-bubble">
+            <div class="msg-content">${escaped}</div>
+            <div class="msg-time">${now}</div>
+        </div>
+        <div class="msg-avatar user-msg-avatar">
+            {{ request.user.first_name|first|upper }}
+        </div>`;
+
+    container.appendChild(row);
+    scrollToBottom();
+}
+
+
+// ── Append BOT message (handles message + buttons + quick replies) ──
+function appendBotMessage(data) {
+    const container = document.getElementById('aiMessages');
+    const now       = new Date().toLocaleTimeString(
+                          'en-US', { hour: 'numeric', minute: '2-digit' });
+
+    // ── Action Buttons ──
+    let buttonsHtml = '';
+    if (data.buttons && data.buttons.length) {
+        buttonsHtml = `
+            <div class="bot-action-buttons">
+                ${data.buttons.map(btn => `
+                    <a href="${btn.url}"
+                       class="bot-action-btn">
+                        ${btn.label}
+                    </a>
+                `).join('')}
+            </div>`;
+    }
+
+    // ── Quick Reply Chips ──
+    let quickRepliesHtml = '';
+    if (data.quick_replies && data.quick_replies.length) {
+        quickRepliesHtml = `
+            <div class="quick-reply-chips">
+                ${data.quick_replies.map(qr => `
+                    <button class="quick-reply-chip"
+                            onclick="sendQuick('${qr.replace(/'/g, "\\'")}')">
+                        ${qr}
+                    </button>
+                `).join('')}
+            </div>`;
+    }
+
+    const row     = document.createElement('div');
+    row.className = 'ai-message-row ai-row';
+    row.innerHTML = `
+        <div class="msg-avatar ai-msg-avatar">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="msg-bubble ai-bubble">
+            <div class="msg-content markdown-body">
+                ${marked.parse(data.message || '')}
+            </div>
+            ${buttonsHtml}
+            ${quickRepliesHtml}
+            <div class="msg-time">${now}</div>
+        </div>`;
+
+    container.appendChild(row);
+    scrollToBottom();
+}
+
+
+// ── Clear Chat ──
+async function clearChat() {
+    if (!confirm('Clear the entire conversation?')) return;
+
+    await fetch('/ai/clear/', {
+        method:  'POST',
+        headers: { 'X-CSRFToken': CSRF_TOKEN },
+    });
+
+    const container = document.getElementById('aiMessages');
+    container.innerHTML = `
+        <div class="ai-welcome">
+            <div class="ai-welcome-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <h3>Chat cleared!</h3>
+            <p>Start a new conversation. How can I help you?</p>
+            <div class="quick-reply-chips" style="justify-content:center;margin-top:16px">
+                <button class="quick-reply-chip"
+                        onclick="sendQuick('📅 Book Appointment')">
+                    📅 Book Appointment
+                </button>
+                <button class="quick-reply-chip"
+                        onclick="sendQuick('🤒 Check Symptoms')">
+                    🤒 Check Symptoms
+                </button>
+                <button class="quick-reply-chip"
+                        onclick="sendQuick('📋 My Appointments')">
+                    📋 My Appointments
+                </button>
+            </div>
+        </div>`;
+}
+</script>
 {% endblock %}

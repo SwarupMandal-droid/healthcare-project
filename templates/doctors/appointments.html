@@ -45,55 +45,62 @@
         <div class="appt-row appt-table-head">
             <span>Patient</span>
             <span>Time Slot</span>
-            <span>Issue</span>
+            <span>Symptoms</span>
             <span>Status</span>
             <span style="text-align:right">Actions</span>
         </div>
 
-        {% for i in "1234" %}
+        {% for appt in today_appts %}
         <div class="appt-row">
             <div class="appt-doc-info">
-                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:5 }}" alt="">
+                <img src="https://ui-avatars.com/api/?name={{ appt.patient.get_full_name }}&background=2563eb&color=fff&size=40"
+                     alt="">
                 <div class="appt-doc-info-text">
-                    <strong>Patient {{ forloop.counter }}</strong>
-                    <span>Age: {{ forloop.counter|add:24 }}</span>
+                    <strong>{{ appt.patient.get_full_name }}</strong>
+                    <span>ID: {{ appt.appointment_id }}</span>
                 </div>
             </div>
             <div>
                 <div style="font-weight:600;font-size:0.88rem">
-                    {% if forloop.counter == 1 %}10:00 AM
-                    {% elif forloop.counter == 2 %}11:30 AM
-                    {% elif forloop.counter == 3 %}2:00 PM
-                    {% else %}4:30 PM{% endif %}
+                    {{ appt.start_time|time:"g:i A" }}
                 </div>
-                <div style="font-size:0.75rem;color:var(--gray-400)">Today</div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">
+                    Today
+                </div>
             </div>
-            <div style="font-size:0.85rem;color:var(--gray-600);max-width:160px">
-                {% if forloop.counter == 1 %}Chest pain, follow-up
-                {% elif forloop.counter == 2 %}Routine checkup
-                {% elif forloop.counter == 3 %}ECG review
-                {% else %}BP monitoring{% endif %}
+            <div style="font-size:0.85rem;color:var(--gray-600);
+                        max-width:160px">
+                {{ appt.symptoms|default:"Not specified"|truncatechars:40 }}
             </div>
-            <span class="badge {% if forloop.counter == 3 %}badge-warning{% else %}badge-success{% endif %}">
-                {% if forloop.counter == 3 %}Pending{% else %}Confirmed{% endif %}
+            <span class="badge
+                {% if appt.status == 'confirmed' %}badge-success
+                {% elif appt.status == 'pending' %}badge-warning
+                {% else %}badge-gray{% endif %}">
+                {{ appt.get_status_display }}
             </span>
             <div class="appt-row-actions">
                 <button class="btn btn-sm btn-outline"
-                        onclick="openPatientDetail({{ forloop.counter }})">
+                        data-name="{{ appt.patient.get_full_name }}"
+                        data-id="{{ appt.appointment_id }}"
+                        data-dbid="{{ appt.id }}"
+                        data-time="{{ appt.start_time|time:'g:i A' }}"
+                        data-symptoms="{{ appt.symptoms|default:'Not specified' }}"
+                        onclick="openPatientDetail(this)">
                     <i class="fas fa-eye"></i> View
                 </button>
-                <button class="btn btn-sm btn-secondary"
-                        onclick="markComplete(this)">
-                    <i class="fas fa-check"></i> Done
-                </button>
-                <button class="btn btn-sm btn-outline"
-                        style="color:var(--danger);border-color:var(--danger)">
-                    <i class="fas fa-times"></i>
-                </button>
+                <a href="{% url 'doctors:upload' %}?patient={{ appt.patient.id }}"
+                   class="btn btn-sm btn-secondary">
+                    <i class="fas fa-upload"></i>
+                </a>
             </div>
         </div>
+        {% empty %}
+        <div style="text-align:center;padding:48px;color:var(--gray-400)">
+            <i class="fas fa-calendar-times"
+               style="font-size:2rem;margin-bottom:12px;display:block"></i>
+            <p>No appointments scheduled for today.</p>
+        </div>
         {% endfor %}
-
     </div>
 </div>
 
@@ -103,41 +110,49 @@
         <div class="appt-row appt-table-head">
             <span>Patient</span>
             <span>Date & Time</span>
-            <span>Issue</span>
+            <span>Symptoms</span>
             <span>Status</span>
             <span style="text-align:right">Actions</span>
         </div>
-        {% for i in "12345678" %}
+        {% for appt in upcoming %}
         <div class="appt-row">
             <div class="appt-doc-info">
-                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:15 }}" alt="">
+                <img src="https://ui-avatars.com/api/?name={{ appt.patient.get_full_name }}&background=2563eb&color=fff&size=40"
+                     alt="">
                 <div class="appt-doc-info-text">
-                    <strong>Patient {{ forloop.counter }}</strong>
-                    <span>Age: {{ forloop.counter|add:20 }}</span>
+                    <strong>{{ appt.patient.get_full_name }}</strong>
+                    <span>{{ appt.appointment_id }}</span>
                 </div>
             </div>
             <div>
                 <div style="font-weight:600;font-size:0.88rem">
-                    Mar {{ forloop.counter|add:2 }}, 2025
+                    {{ appt.appointment_date|date:"M d, Y" }}
                 </div>
                 <div style="font-size:0.75rem;color:var(--gray-400)">
-                    {{ forloop.counter|add:9 }}:00 AM
+                    {{ appt.start_time|time:"g:i A" }}
                 </div>
             </div>
             <div style="font-size:0.85rem;color:var(--gray-600)">
-                General consultation
+                {{ appt.symptoms|default:"Not specified"|truncatechars:40 }}
             </div>
-            <span class="badge badge-success">Confirmed</span>
+            <span class="badge badge-success">
+                {{ appt.get_status_display }}
+            </span>
             <div class="appt-row-actions">
                 <button class="btn btn-sm btn-outline"
-                        onclick="openPatientDetail({{ forloop.counter }})">
+                        data-name="{{ appt.patient.get_full_name }}"
+                        data-id="{{ appt.appointment_id }}"
+                        data-dbid="{{ appt.id }}"
+                        data-time="{{ appt.start_time|time:'g:i A' }}"
+                        data-symptoms="{{ appt.symptoms|default:'Not specified' }}"
+                        onclick="openPatientDetail(this)">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="btn btn-sm btn-outline"
-                        style="color:var(--danger);border-color:var(--danger)">
-                    <i class="fas fa-times"></i>
-                </button>
             </div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;padding:48px;color:var(--gray-400)">
+            <p>No upcoming appointments.</p>
         </div>
         {% endfor %}
     </div>
@@ -153,32 +168,41 @@
             <span>Status</span>
             <span style="text-align:right">Actions</span>
         </div>
-        {% for i in "12345" %}
+        {% for appt in completed %}
         <div class="appt-row">
             <div class="appt-doc-info">
-                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:25 }}" alt="">
+                <img src="https://ui-avatars.com/api/?name={{ appt.patient.get_full_name }}&background=2563eb&color=fff&size=40" alt="">
                 <div class="appt-doc-info-text">
-                    <strong>Patient {{ forloop.counter }}</strong>
-                    <span>Age: {{ forloop.counter|add:30 }}</span>
+                    <strong>{{ appt.patient.get_full_name }}</strong>
+                    <span>ID: {{ appt.appointment_id }}</span>
                 </div>
             </div>
             <div>
                 <div style="font-weight:600;font-size:0.88rem">
-                    Feb {{ forloop.counter|add:10 }}, 2025
+                    {{ appt.appointment_date|date:"M d, Y" }}
                 </div>
-                <div style="font-size:0.75rem;color:var(--gray-400)">10:00 AM</div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">{{ appt.start_time|time:"g:i A" }}</div>
             </div>
-            <div style="font-size:0.85rem;color:var(--gray-600)">Cardiac checkup</div>
+            <div style="font-size:0.85rem;color:var(--gray-600)">{{ appt.symptoms|default:"Not specified"|truncatechars:40 }}</div>
             <span class="badge badge-gray">Completed</span>
             <div class="appt-row-actions">
-                <button class="btn btn-sm btn-outline">
+                <button class="btn btn-sm btn-outline"
+                        data-name="{{ appt.patient.get_full_name }}"
+                        data-id="{{ appt.appointment_id }}"
+                        data-time="{{ appt.start_time|time:'g:i A' }}"
+                        data-symptoms="{{ appt.symptoms|default:'Not specified' }}"
+                        onclick="openPatientDetail(this)">
                     <i class="fas fa-eye"></i>
                 </button>
-                <a href="{% url 'doctors:upload' %}"
+                <a href="{% url 'doctors:upload' %}?patient={{ appt.patient.id }}"
                    class="btn btn-sm btn-primary">
                     <i class="fas fa-upload"></i> Upload Docs
                 </a>
             </div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;padding:48px;color:var(--gray-400)">
+            <p>No completed appointments.</p>
         </div>
         {% endfor %}
     </div>
@@ -194,28 +218,37 @@
             <span>Status</span>
             <span style="text-align:right">Actions</span>
         </div>
-        {% for i in "123" %}
+        {% for appt in cancelled %}
         <div class="appt-row">
             <div class="appt-doc-info">
-                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:35 }}" alt="">
+                <img src="https://ui-avatars.com/api/?name={{ appt.patient.get_full_name }}&background=2563eb&color=fff&size=40" alt="">
                 <div class="appt-doc-info-text">
-                    <strong>Patient {{ forloop.counter }}</strong>
-                    <span>Age: {{ forloop.counter|add:22 }}</span>
+                    <strong>{{ appt.patient.get_full_name }}</strong>
+                    <span>ID: {{ appt.appointment_id }}</span>
                 </div>
             </div>
             <div>
                 <div style="font-weight:600;font-size:0.88rem">
-                    Jan {{ forloop.counter|add:8 }}, 2025
+                    {{ appt.appointment_date|date:"M d, Y" }}
                 </div>
-                <div style="font-size:0.75rem;color:var(--gray-400)">2:00 PM</div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">{{ appt.start_time|time:"g:i A" }}</div>
             </div>
-            <div style="font-size:0.85rem;color:var(--gray-600)">Follow-up</div>
+            <div style="font-size:0.85rem;color:var(--gray-600)">{{ appt.symptoms|default:"Not specified"|truncatechars:40 }}</div>
             <span class="badge badge-danger">Cancelled</span>
             <div class="appt-row-actions">
-                <button class="btn btn-sm btn-outline">
+                <button class="btn btn-sm btn-outline"
+                        data-name="{{ appt.patient.get_full_name }}"
+                        data-id="{{ appt.appointment_id }}"
+                        data-time="{{ appt.start_time|time:'g:i A' }}"
+                        data-symptoms="{{ appt.symptoms|default:'Not specified' }}"
+                        onclick="openPatientDetail(this)">
                     <i class="fas fa-eye"></i>
                 </button>
             </div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;padding:48px;color:var(--gray-400)">
+            <p>No cancelled appointments.</p>
         </div>
         {% endfor %}
     </div>
@@ -235,7 +268,7 @@
                 <img src="https://i.pravatar.cc/72?img=5"
                      style="width:72px;height:72px;border-radius:50%;border:3px solid var(--primary-light)">
                 <div>
-                    <h3 style="margin-bottom:4px">Ananya Sharma</h3>
+                    <h3 style="margin-bottom:4px" id="modalPatientName">Ananya Sharma</h3>
                     <div style="display:flex;gap:10px;flex-wrap:wrap">
                         <span class="badge badge-info">Age: 28</span>
                         <span class="badge badge-danger">Blood: B+</span>
@@ -246,11 +279,11 @@
             <div class="appt-detail-grid">
                 <div class="detail-row">
                     <span class="detail-label"><i class="fas fa-calendar"></i> Date & Time</span>
-                    <span class="detail-val">Today — 10:00 AM</span>
+                    <span class="detail-val" id="modalPatientTime">Today — 10:00 AM</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label"><i class="fas fa-notes-medical"></i> Symptoms</span>
-                    <span class="detail-val">Chest pain, shortness of breath</span>
+                    <span class="detail-val" id="modalPatientSymptoms">Chest pain, shortness of breath</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label"><i class="fas fa-pills"></i> Allergies</span>
@@ -275,7 +308,8 @@
                     <i class="fas fa-upload"></i> Upload Documents
                 </a>
                 <button class="btn btn-secondary w-full justify-center"
-                        onclick="markComplete(this);closeModal('patientDetailModal')">
+                        id="modalMarkCompleteBtn"
+                        onclick="markComplete(this, this.dataset.id)">
                     <i class="fas fa-check"></i> Mark Complete
                 </button>
             </div>
@@ -294,19 +328,55 @@ function switchTab(btn, tab) {
     document.getElementById('tab-' + tab).style.display = 'block';
 }
 
-function openPatientDetail(id) {
+function openPatientDetail(btn) {
+    if (btn && btn.dataset) {
+        document.getElementById('modalPatientName').textContent = btn.dataset.name;
+        document.getElementById('modalPatientTime').textContent = btn.dataset.time;
+        document.getElementById('modalPatientSymptoms').textContent = btn.dataset.symptoms;
+        document.getElementById('modalMarkCompleteBtn').dataset.id = btn.dataset.dbid;
+    }
     document.getElementById('patientDetailModal').classList.add('open');
     document.body.style.overflow = 'hidden';
 }
 
-function markComplete(btn) {
-    const row = btn.closest('.appt-row');
-    const badge = row.querySelector('.badge');
-    badge.className = 'badge badge-gray';
-    badge.textContent = 'Completed';
-    btn.innerHTML = '<i class="fas fa-check-double"></i> Done';
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
+function markComplete(btn, apptId) {
+    if (!confirm('Are you sure you want to mark this appointment as completed?')) return;
+    
+    fetch(`/appointments/complete/${apptId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const row = btn.closest('.appt-row') || document.querySelector(`[data-id="${apptId}"]`)?.closest('.appt-row');
+            if (row) {
+                const badge = row.querySelector('.badge');
+                badge.className = 'badge badge-gray';
+                badge.textContent = 'Completed';
+                
+                const actions = row.querySelector('.appt-row-actions');
+                if (actions) {
+                    actions.innerHTML = `
+                         <button class="btn btn-sm btn-outline" onclick="openPatientDetail(this)" 
+                                 data-id="${apptId}">
+                            <i class="fas fa-eye"></i>
+                        </button>`;
+                }
+            }
+            alert(data.message);
+            window.location.reload();
+        } else {
+            alert(data.message);
+        }
+    })
+    .catch(err => {
+        console.error('Error:', err);
+        alert('Failed to complete appointment');
+    });
 }
 </script>
 {% endblock %}

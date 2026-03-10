@@ -50,6 +50,13 @@
                 <span class="nav-badge">4</span>
             </a>
 
+            <a href="{% url 'notifications:all' %}"
+               class="sidebar-link
+               {% if 'notifications' in request.path %}active{% endif %}">
+                <i class="fas fa-bell"></i>
+                <span>Notifications</span>
+            </a>
+
             <a href="{% url 'doctors:documents' %}"
                class="sidebar-link {% if request.resolver_match.url_name == 'documents' %}active{% endif %}">
                 <i class="fas fa-folder-open"></i>
@@ -104,45 +111,40 @@
                     <input type="text" placeholder="Search patients...">
                 </div>
 
-                <div class="header-icon-btn notif-btn" id="notifBtn">
-                    <i class="fas fa-bell"></i>
-                    <span class="notif-dot"></span>
+                <!-- Notification Bell -->
+                <div class="notif-wrap" id="notifWrap">
+                    <button class="notif-btn" id="notifBtn"
+                            onclick="toggleNotifDropdown()">
+                        <i class="fas fa-bell"></i>
+                        <span class="notif-badge" id="notifBadge"
+                              style="display:none">0</span>
+                    </button>
+
                     <div class="notif-dropdown" id="notifDropdown">
-                        <div class="notif-header">
+                        <div class="notif-dropdown-header">
                             <h4>Notifications</h4>
-                            <a href="#">Mark all read</a>
+                            <button onclick="markAllRead()"
+                                    style="font-size:0.75rem;color:var(--primary);
+                                           background:none;border:none;cursor:pointer;
+                                           font-weight:600">
+                                Mark all read
+                            </button>
                         </div>
-                        <div class="notif-list">
-                            <div class="notif-item unread">
-                                <div class="notif-icon appt-icon">
-                                    <i class="fas fa-calendar-plus"></i>
-                                </div>
-                                <div class="notif-body">
-                                    <p><strong>Ananya Sharma</strong> booked an appointment</p>
-                                    <span>Today, 9:15 AM</span>
-                                </div>
-                            </div>
-                            <div class="notif-item unread">
-                                <div class="notif-icon pay-icon">
-                                    <i class="fas fa-rupee-sign"></i>
-                                </div>
-                                <div class="notif-body">
-                                    <p>Payment received — <strong>₹500</strong></p>
-                                    <span>Today, 9:15 AM</span>
-                                </div>
-                            </div>
-                            <div class="notif-item">
-                                <div class="notif-icon doc-icon">
-                                    <i class="fas fa-calendar-check"></i>
-                                </div>
-                                <div class="notif-body">
-                                    <p><strong>Rahul Verma</strong> confirmed appointment</p>
-                                    <span>Yesterday, 4:00 PM</span>
-                                </div>
+
+                        <div class="notif-list" id="notifList">
+                            <div style="text-align:center;padding:32px;
+                                        color:var(--gray-400)">
+                                <i class="fas fa-bell"
+                                   style="font-size:1.5rem;margin-bottom:8px;
+                                          display:block;opacity:0.3"></i>
+                                <p style="font-size:0.85rem">Loading...</p>
                             </div>
                         </div>
-                        <div class="notif-footer">
-                            <a href="#">View all notifications</a>
+
+                        <div class="notif-dropdown-footer">
+                            <a href="{% url 'notifications:all' %}">
+                                View all notifications
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -166,7 +168,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/patient_dashboard.js' %}?v=1"></script>
-<script src="{% static 'js/doctor_dashboard.js' %}?v=1"></script>
+<script src="{% static 'js/patient_dashboard.js' %}"></script>
+<script src="{% static 'js/doctor_dashboard.js' %}"></script>
 {% block page_js %}{% endblock %}
 {% endblock %}

@@ -1,4 +1,134 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Booking Confirmed — Lifeline Care{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/booking.css' %}">
+{% endblock %}
+
 {% block content %}
-<h1>Page coming soon</h1>
+
+<div class="success-wrapper">
+
+    <div class="success-card">
+
+        <!-- Success Animation -->
+        <div class="success-icon-wrap">
+            <div class="success-circle">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="success-ripple"></div>
+            <div class="success-ripple ripple-2"></div>
+        </div>
+
+        <h1>Appointment Confirmed!</h1>
+        <p style="color:var(--gray-500);margin-bottom:32px">
+            Your appointment has been successfully booked.
+        </p>
+
+        <!-- Appointment ID Card -->
+        <div class="appt-id-card">
+            <p style="font-size:0.78rem;color:var(--gray-500);
+                      text-transform:uppercase;letter-spacing:1px;
+                      margin-bottom:6px">
+                Appointment ID
+            </p>
+            <p style="font-size:1.5rem;font-weight:800;
+                      color:var(--primary);letter-spacing:2px">
+                {{ appt.appointment_id }}
+            </p>
+        </div>
+
+        <!-- Details Grid -->
+        <div class="success-details">
+            <div class="success-detail-row">
+                <div class="success-detail-icon" style="background:#EFF6FF">
+                    <i class="fas fa-user-md" style="color:var(--primary)"></i>
+                </div>
+                <div>
+                    <p class="success-detail-label">Doctor</p>
+                    <p class="success-detail-val">
+                        Dr. {{ appt.doctor.user.get_full_name }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="success-detail-row">
+                <div class="success-detail-icon" style="background:#D1FAE5">
+                    <i class="fas fa-stethoscope"
+                       style="color:var(--secondary)"></i>
+                </div>
+                <div>
+                    <p class="success-detail-label">Specialization</p>
+                    <p class="success-detail-val">
+                        {{ appt.doctor.specialization.name }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="success-detail-row">
+                <div class="success-detail-icon" style="background:#FEF3C7">
+                    <i class="fas fa-calendar" style="color:var(--accent)"></i>
+                </div>
+                <div>
+                    <p class="success-detail-label">Date</p>
+                    <p class="success-detail-val">
+                        {{ appt.appointment_date|date:"l, F d, Y" }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="success-detail-row">
+                <div class="success-detail-icon" style="background:#F3E8FF">
+                    <i class="fas fa-clock" style="color:#7C3AED"></i>
+                </div>
+                <div>
+                    <p class="success-detail-label">Time</p>
+                    <p class="success-detail-val">
+                        {{ appt.start_time|time:"g:i A" }} —
+                        {{ appt.end_time|time:"g:i A" }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="success-detail-row">
+                <div class="success-detail-icon" style="background:#D1FAE5">
+                    <i class="fas fa-check-circle"
+                       style="color:var(--secondary)"></i>
+                </div>
+                <div>
+                    <p class="success-detail-label">Payment</p>
+                    <p class="success-detail-val"
+                       style="color:var(--secondary)">
+                        ₹{{ appt.payment.amount }} — Paid ✓
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display:flex;gap:12px;flex-wrap:wrap;
+                    justify-content:center;margin-top:32px">
+            <a href="{% url 'patients:appointments' %}"
+               class="btn btn-primary btn-lg">
+                <i class="fas fa-calendar-check"></i>
+                View My Appointments
+            </a>
+            <a href="{% url 'patients:dashboard' %}"
+               class="btn btn-outline btn-lg">
+                <i class="fas fa-home"></i>
+                Go to Dashboard
+            </a>
+        </div>
+
+        <p style="margin-top:20px;font-size:0.82rem;color:var(--gray-400)">
+            <i class="fas fa-envelope"></i>
+            A confirmation has been saved to your appointments.
+        </p>
+    </div>
+
+</div>
+
 {% endblock %}

@@ -19,33 +19,35 @@
 </div>
 
 <!-- Filter Bar -->
-<div class="filter-bar" style="margin-bottom:24px">
+<form method="GET" action="{% url 'doctors:documents' %}" class="filter-bar" style="margin-bottom:24px">
     <div class="filter-group" style="flex:2">
         <label><i class="fas fa-search"></i> Search Patient</label>
-        <input type="text" placeholder="Search by patient name or ID...">
+        <input type="text" name="search" value="{{ request.GET.search }}" placeholder="Search by patient name or ID...">
     </div>
     <div class="filter-group">
         <label>Document Type</label>
-        <select>
-            <option>All Types</option>
-            <option>Prescriptions</option>
-            <option>Lab Reports</option>
-            <option>Diet Charts</option>
-            <option>Medical Notes</option>
+        <select name="type">
+            <option value="">All Types</option>
+            <option value="prescription" {% if request.GET.type == 'prescription' %}selected{% endif %}>Prescriptions</option>
+            <option value="lab_report" {% if request.GET.type == 'lab_report' %}selected{% endif %}>Lab Reports</option>
+            <option value="diet_chart" {% if request.GET.type == 'diet_chart' %}selected{% endif %}>Diet Charts</option>
+            <option value="notes" {% if request.GET.type == 'notes' %}selected{% endif %}>Medical Notes</option>
+            <option value="other" {% if request.GET.type == 'other' %}selected{% endif %}>Other</option>
         </select>
     </div>
     <div class="filter-group">
         <label>Date Range</label>
-        <select>
-            <option>All Time</option>
-            <option>This Week</option>
-            <option>This Month</option>
+        <select name="date_range">
+            <option value="">All Time</option>
+            <option value="today" {% if request.GET.date_range == 'today' %}selected{% endif %}>Today</option>
+            <option value="this_week" {% if request.GET.date_range == 'this_week' %}selected{% endif %}>This Week</option>
+            <option value="this_month" {% if request.GET.date_range == 'this_month' %}selected{% endif %}>This Month</option>
         </select>
     </div>
-    <button class="btn btn-primary" style="align-self:flex-end">
+    <button type="submit" class="btn btn-primary" style="align-self:flex-end">
         <i class="fas fa-filter"></i> Filter
     </button>
-</div>
+</form>
 
 <!-- Documents Table -->
 <div class="panel-card">
@@ -58,50 +60,48 @@
         <span style="text-align:right">Actions</span>
     </div>
 
-    {% for i in "12345678" %}
+    {% for doc in documents %}
     <div class="appt-row" style="grid-template-columns:2fr 1.5fr 1fr 1fr 1fr">
         <div class="appt-doc-info">
-            <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:4 }}" alt="">
+            {% if doc.patient.profile_photo %}
+            <img src="{{ doc.patient.profile_photo.url }}" alt="{{ doc.patient.get_full_name }}">
+            {% else %}
+            <img src="{% static 'img/default-avatar.png' %}" alt="Avatar">
+            {% endif %}
             <div class="appt-doc-info-text">
-                <strong>Patient {{ forloop.counter }}</strong>
-                <span>ID: LC-P-00{{ forloop.counter }}</span>
+                <strong>{{ doc.patient.get_full_name|default:doc.patient.username }}</strong>
+                <span>ID: LC-P-{{ doc.patient.id|stringformat:"04d" }}</span>
             </div>
         </div>
         <div style="font-size:0.88rem;font-weight:600;color:var(--gray-700)">
-            {% if forloop.counter == 1 %}Cardiac Prescription
-            {% elif forloop.counter == 2 %}CBC Lab Report
-            {% elif forloop.counter == 3 %}Weekly Diet Plan
-            {% elif forloop.counter == 4 %}Clinical Notes
-            {% elif forloop.counter == 5 %}ECG Report
-            {% elif forloop.counter == 6 %}BP Monitoring Chart
-            {% elif forloop.counter == 7 %}Follow-up Notes
-            {% else %}Cholesterol Report{% endif %}
+            {{ doc.title|default:"Unnamed Document" }}
         </div>
         <span class="badge
-            {% if forloop.counter == 1 or forloop.counter == 5 %}badge-info
-            {% elif forloop.counter == 2 or forloop.counter == 8 %}badge-success
-            {% elif forloop.counter == 3 %}badge-warning
+            {% if doc.doc_type == 'prescription' %}badge-info
+            {% elif doc.doc_type == 'lab_report' %}badge-success
+            {% elif doc.doc_type == 'diet_chart' %}badge-warning
             {% else %}badge-gray{% endif %}">
-            {% if forloop.counter == 1 or forloop.counter == 5 %}Prescription
-            {% elif forloop.counter == 2 or forloop.counter == 8 %}Lab Report
-            {% elif forloop.counter == 3 %}Diet Chart
-            {% else %}Notes{% endif %}
+            {{ doc.get_doc_type_display }}
         </span>
         <div style="font-size:0.85rem;color:var(--gray-600)">
-            Feb {{ forloop.counter|add:15 }}, 2025
+            {{ doc.uploaded_at|date:"M d, Y" }}
         </div>
-        <div class="appt-row-actions">
-            <button class="btn btn-sm btn-outline">
+        <div class="appt-row-actions" style="justify-content: flex-end;">
+            {% if doc.file %}
+            <a href="{{ doc.file.url }}" target="_blank" class="btn btn-sm btn-outline" title="View">
                 <i class="fas fa-eye"></i>
-            </button>
-            <button class="btn btn-sm btn-outline">
+            </a>
+            <a href="{{ doc.file.url }}" download class="btn btn-sm btn-outline" title="Download">
                 <i class="fas fa-download"></i>
-            </button>
-            <button class="btn btn-sm btn-outline"
-                    style="color:var(--danger);border-color:var(--danger)">
-                <i class="fas fa-trash-alt"></i>
-            </button>
+            </a>
+            {% else %}
+            <span style="font-size: 0.8rem; color: var(--gray-500);">No file</span>
+            {% endif %}
         </div>
+    </div>
+    {% empty %}
+    <div style="padding:2rem;text-align:center;color:var(--gray-500)">
+        No documents found matching your criteria.
     </div>
     {% endfor %}
 

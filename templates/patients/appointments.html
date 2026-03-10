@@ -5,7 +5,7 @@
 {% block breadcrumb %}My Appointments{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
 {% endblock %}
 
 {% block dash_content %}
@@ -19,18 +19,21 @@
 
 <!-- Tabs -->
 <div class="page-tabs">
-    <button class="page-tab active" onclick="switchApptTab(this, 'upcoming')">
-        <i class="fas fa-clock"></i> Upcoming (3)
+    <button class="page-tab active" onclick="switchApptTab(this,'upcoming')">
+        <i class="fas fa-clock"></i>
+        Upcoming ({{ upcoming.count }})
     </button>
-    <button class="page-tab" onclick="switchApptTab(this, 'completed')">
-        <i class="fas fa-check"></i> Completed (12)
+    <button class="page-tab" onclick="switchApptTab(this,'completed')">
+        <i class="fas fa-check"></i>
+        Completed ({{ completed.count }})
     </button>
-    <button class="page-tab" onclick="switchApptTab(this, 'cancelled')">
-        <i class="fas fa-times"></i> Cancelled (2)
+    <button class="page-tab" onclick="switchApptTab(this,'cancelled')">
+        <i class="fas fa-times"></i>
+        Cancelled ({{ cancelled.count }})
     </button>
 </div>
 
-<!-- Upcoming -->
+<!-- ── UPCOMING ── -->
 <div class="appt-tab-content" id="tab-upcoming">
     <div class="appt-table-card">
         <div class="appt-row appt-table-head">
@@ -40,38 +43,71 @@
             <span>Status</span>
             <span style="text-align:right">Actions</span>
         </div>
-        {% for i in "123" %}
+
+        {% for appt in upcoming %}
         <div class="appt-row">
             <div class="appt-doc-info">
-                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:10 }}" alt="">
+                {% if appt.doctor.user.profile_photo %}
+                <img src="{{ appt.doctor.user.profile_photo.url }}" alt="">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ appt.doctor.user.get_full_name }}&background=2563eb&color=fff&size=40"
+                     alt="">
+                {% endif %}
                 <div class="appt-doc-info-text">
-                    <strong>Dr. Sharma #{{ forloop.counter }}</strong>
-                    <span>Cardiology</span>
+                    <strong>Dr. {{ appt.doctor.user.get_full_name }}</strong>
+                    <span>{{ appt.doctor.specialization.name }}</span>
                 </div>
             </div>
             <div>
-                <div style="font-weight:600;font-size:0.88rem">Mar {{ forloop.counter|add:3 }}, 2025</div>
-                <div style="font-size:0.78rem;color:var(--gray-500)">{{ forloop.counter|add:9 }}:00 AM</div>
+                <div style="font-weight:600;font-size:0.88rem">
+                    {{ appt.appointment_date|date:"M d, Y" }}
+                </div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">
+                    {{ appt.start_time|time:"g:i A" }}
+                </div>
             </div>
             <span class="badge badge-info">In-Person</span>
-            <span class="badge badge-success">Confirmed</span>
+            <span class="badge badge-success">
+                {{ appt.get_status_display }}
+            </span>
             <div class="appt-row-actions">
-                <button class="btn btn-sm btn-outline" onclick="openApptDetail()">
+                <button class="btn btn-sm btn-outline"
+                        onclick="openApptDetail(
+                            'Dr. {{ appt.doctor.user.get_full_name }}',
+                            '{{ appt.doctor.specialization.name }}',
+                            '{{ appt.appointment_date|date:"M d, Y" }}',
+                            '{{ appt.start_time|time:"g:i A" }}',
+                            '{{ appt.symptoms|default:"Not specified"|truncatechars:60 }}',
+                            '{{ appt.get_status_display }}',
+                            '{{ appt.appointment_id }}'
+                        )">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="btn btn-sm btn-outline" style="color:var(--warning);border-color:var(--warning)">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-outline" style="color:var(--danger);border-color:var(--danger)">
+                <a href="{% url 'appointments:cancel' appt.id %}"
+                   class="btn btn-sm btn-outline"
+                   style="color:var(--danger);border-color:var(--danger)"
+                   onclick="return confirm('Cancel this appointment?')">
                     <i class="fas fa-times"></i>
-                </button>
+                </a>
             </div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;padding:48px;color:var(--gray-400)">
+            <i class="fas fa-calendar-times"
+               style="font-size:2.5rem;margin-bottom:16px;display:block"></i>
+            <p style="font-size:1rem;font-weight:600;margin-bottom:8px">
+                No upcoming appointments
+            </p>
+            <a href="{% url 'patients:find_doctors' %}"
+               class="btn btn-primary btn-sm" style="margin-top:8px">
+                <i class="fas fa-plus"></i> Book Now
+            </a>
         </div>
         {% endfor %}
     </div>
 </div>
 
-<!-- Completed -->
+<!-- ── COMPLETED ── -->
 <div class="appt-tab-content" id="tab-completed" style="display:none">
     <div class="appt-table-card">
         <div class="appt-row appt-table-head">
@@ -81,175 +117,309 @@
             <span>Status</span>
             <span style="text-align:right">Actions</span>
         </div>
-        {% for i in "12345" %}
+
+        {% for appt in completed %}
         <div class="appt-row">
             <div class="appt-doc-info">
-                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:20 }}" alt="">
+                {% if appt.doctor.user.profile_photo %}
+                <img src="{{ appt.doctor.user.profile_photo.url }}" alt="">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ appt.doctor.user.get_full_name }}&background=2563eb&color=fff&size=40"
+                     alt="">
+                {% endif %}
                 <div class="appt-doc-info-text">
-                    <strong>Dr. Verma #{{ forloop.counter }}</strong>
-                    <span>Neurology</span>
+                    <strong>Dr. {{ appt.doctor.user.get_full_name }}</strong>
+                    <span>{{ appt.doctor.specialization.name }}</span>
                 </div>
             </div>
             <div>
-                <div style="font-weight:600;font-size:0.88rem">Feb {{ forloop.counter|add:10 }}, 2025</div>
-                <div style="font-size:0.78rem;color:var(--gray-500)">10:30 AM</div>
+                <div style="font-weight:600;font-size:0.88rem">
+                    {{ appt.appointment_date|date:"M d, Y" }}
+                </div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">
+                    {{ appt.start_time|time:"g:i A" }}
+                </div>
             </div>
             <span class="badge badge-info">In-Person</span>
             <span class="badge badge-gray">Completed</span>
             <div class="appt-row-actions">
-                <button class="btn btn-sm btn-outline">
+                <button class="btn btn-sm btn-outline"
+                        onclick="openApptDetail(
+                            'Dr. {{ appt.doctor.user.get_full_name }}',
+                            '{{ appt.doctor.specialization.name }}',
+                            '{{ appt.appointment_date|date:"M d, Y" }}',
+                            '{{ appt.start_time|time:"g:i A" }}',
+                            '{{ appt.symptoms|default:"Not specified"|truncatechars:60 }}',
+                            'Completed',
+                            '{{ appt.appointment_id }}'
+                        )">
                     <i class="fas fa-eye"></i>
                 </button>
-                <button class="btn btn-sm btn-secondary" onclick="openReviewModal()">
+                {% if not appt.review %}
+                <button class="btn btn-sm btn-secondary"
+                        onclick="openReviewModal({{ appt.id }})">
                     <i class="fas fa-star"></i> Review
                 </button>
+                {% else %}
+                <span class="badge badge-success">
+                    <i class="fas fa-check"></i> Reviewed
+                </span>
+                {% endif %}
             </div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;padding:48px;color:var(--gray-400)">
+            <i class="fas fa-check-circle"
+               style="font-size:2.5rem;margin-bottom:16px;display:block"></i>
+            <p>No completed appointments yet.</p>
         </div>
         {% endfor %}
     </div>
 </div>
 
-<!-- Cancelled -->
+<!-- ── CANCELLED ── -->
 <div class="appt-tab-content" id="tab-cancelled" style="display:none">
     <div class="appt-table-card">
         <div class="appt-row appt-table-head">
-            <span>Doctor</span><span>Date & Time</span>
-            <span>Type</span><span>Status</span>
+            <span>Doctor</span>
+            <span>Date & Time</span>
+            <span>Type</span>
+            <span>Status</span>
             <span style="text-align:right">Actions</span>
         </div>
-        {% for i in "12" %}
+
+        {% for appt in cancelled %}
         <div class="appt-row">
             <div class="appt-doc-info">
-                <img src="https://i.pravatar.cc/40?img={{ forloop.counter|add:30 }}" alt="">
+                {% if appt.doctor.user.profile_photo %}
+                <img src="{{ appt.doctor.user.profile_photo.url }}" alt="">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ appt.doctor.user.get_full_name }}&background=2563eb&color=fff&size=40"
+                     alt="">
+                {% endif %}
                 <div class="appt-doc-info-text">
-                    <strong>Dr. Patel #{{ forloop.counter }}</strong>
-                    <span>Dermatology</span>
+                    <strong>Dr. {{ appt.doctor.user.get_full_name }}</strong>
+                    <span>{{ appt.doctor.specialization.name }}</span>
                 </div>
             </div>
             <div>
-                <div style="font-weight:600;font-size:0.88rem">Jan {{ forloop.counter|add:15 }}, 2025</div>
-                <div style="font-size:0.78rem;color:var(--gray-500)">2:00 PM</div>
+                <div style="font-weight:600;font-size:0.88rem">
+                    {{ appt.appointment_date|date:"M d, Y" }}
+                </div>
+                <div style="font-size:0.75rem;color:var(--gray-400)">
+                    {{ appt.start_time|time:"g:i A" }}
+                </div>
             </div>
             <span class="badge badge-info">In-Person</span>
             <span class="badge badge-danger">Cancelled</span>
             <div class="appt-row-actions">
-                <a href="{% url 'patients:find_doctors' %}" class="btn btn-sm btn-primary">Rebook</a>
+                <a href="{% url 'patients:find_doctors' %}"
+                   class="btn btn-sm btn-primary">
+                    <i class="fas fa-redo"></i> Rebook
+                </a>
             </div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;padding:48px;color:var(--gray-400)">
+            <i class="fas fa-times-circle"
+               style="font-size:2.5rem;margin-bottom:16px;display:block"></i>
+            <p>No cancelled appointments.</p>
         </div>
         {% endfor %}
     </div>
 </div>
 
-<!-- Appointment Detail Modal -->
+
+<!-- ── Appointment Detail Modal ── -->
 <div class="modal-overlay" id="apptDetailModal">
     <div class="modal-box">
         <div class="modal-header">
             <h3>Appointment Details</h3>
-            <button class="modal-close" onclick="closeModal('apptDetailModal')"><i class="fas fa-times"></i></button>
+            <button class="modal-close"
+                    onclick="closeModal('apptDetailModal')">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         <div class="modal-body">
             <div class="appt-detail-grid">
                 <div class="detail-row">
-                    <span class="detail-label"><i class="fas fa-user-md"></i> Doctor</span>
-                    <span class="detail-val">Dr. Priya Sharma — Cardiology</span>
+                    <span class="detail-label">
+                        <i class="fas fa-hashtag"></i> Appt ID
+                    </span>
+                    <span class="detail-val"
+                          id="modalApptId"
+                          style="color:var(--primary);font-weight:800">
+                    </span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label"><i class="fas fa-calendar"></i> Date & Time</span>
-                    <span class="detail-val">March 5, 2025 — 2:00 PM</span>
+                    <span class="detail-label">
+                        <i class="fas fa-user-md"></i> Doctor
+                    </span>
+                    <span class="detail-val" id="modalDocName"></span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label"><i class="fas fa-map-marker-alt"></i> Location</span>
-                    <span class="detail-val">Apollo Hospital, Mumbai</span>
+                    <span class="detail-label">
+                        <i class="fas fa-stethoscope"></i> Specialization
+                    </span>
+                    <span class="detail-val" id="modalDocSpec"></span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label"><i class="fas fa-rupee-sign"></i> Fee Paid</span>
-                    <span class="detail-val" style="color:var(--secondary);font-weight:700">₹500</span>
+                    <span class="detail-label">
+                        <i class="fas fa-calendar"></i> Date
+                    </span>
+                    <span class="detail-val" id="modalApptDate"></span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label"><i class="fas fa-notes-medical"></i> Symptoms</span>
-                    <span class="detail-val">Chest pain, shortness of breath</span>
+                    <span class="detail-label">
+                        <i class="fas fa-clock"></i> Time
+                    </span>
+                    <span class="detail-val" id="modalApptTime"></span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label"><i class="fas fa-info-circle"></i> Status</span>
-                    <span class="badge badge-success">Confirmed</span>
+                    <span class="detail-label">
+                        <i class="fas fa-notes-medical"></i> Symptoms
+                    </span>
+                    <span class="detail-val" id="modalSymptoms"
+                          style="max-width:220px;text-align:right">
+                    </span>
+                </div>
+                <div class="detail-row" style="border-bottom:none">
+                    <span class="detail-label">
+                        <i class="fas fa-info-circle"></i> Status
+                    </span>
+                    <span id="modalStatus"></span>
                 </div>
             </div>
-            <div style="display:flex;gap:10px;margin-top:20px">
-                <button class="btn btn-outline w-full justify-center" onclick="closeModal('apptDetailModal')">Close</button>
-                <button class="btn btn-danger w-full justify-center">Cancel Appointment</button>
-            </div>
+            <button class="btn btn-outline w-full justify-center"
+                    style="margin-top:20px"
+                    onclick="closeModal('apptDetailModal')">
+                Close
+            </button>
         </div>
     </div>
 </div>
 
-<!-- Review Modal -->
+
+<!-- ── Review Modal ── -->
 <div class="modal-overlay" id="reviewModal">
     <div class="modal-box">
         <div class="modal-header">
             <h3>Rate Your Experience</h3>
-            <button class="modal-close" onclick="closeModal('reviewModal')"><i class="fas fa-times"></i></button>
+            <button class="modal-close"
+                    onclick="closeModal('reviewModal')">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         <div class="modal-body">
-            <div style="text-align:center;margin-bottom:24px">
-                <img src="https://i.pravatar.cc/64?img=15" style="width:64px;height:64px;border-radius:50%;margin-bottom:12px">
-                <h4>Dr. Rohit Verma</h4>
-                <p style="color:var(--gray-500);font-size:0.85rem">Neurologist</p>
-            </div>
-            <div style="text-align:center;margin-bottom:20px">
-                <p style="font-weight:600;margin-bottom:12px">How was your experience?</p>
-                <div class="star-rating" id="starRating">
-                    {% for i in "12345" %}
-                    <i class="fas fa-star star-btn" data-val="{{ forloop.counter }}"
-                       style="font-size:2rem;color:var(--gray-300);cursor:pointer;transition:var(--transition);margin:0 4px"></i>
-                    {% endfor %}
+            <form method="POST" action="#" id="reviewForm">
+                {% csrf_token %}
+                <input type="hidden" name="appointment_id"
+                       id="reviewApptId">
+
+                <div style="text-align:center;margin-bottom:24px">
+                    <p style="font-weight:600;margin-bottom:16px">
+                        How was your experience?
+                    </p>
+                    <div id="starRating"
+                         style="display:flex;justify-content:center;gap:8px">
+                        {% for i in "12345" %}
+                        <i class="fas fa-star star-btn"
+                           data-val="{{ forloop.counter }}"
+                           style="font-size:2rem;color:var(--gray-300);
+                                  cursor:pointer;transition:var(--transition)">
+                        </i>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="rating"
+                           id="ratingInput" value="0">
                 </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Your Review (optional)</label>
-                <textarea class="form-control" rows="3" placeholder="Share your experience..."></textarea>
-            </div>
-            <button class="btn btn-primary w-full justify-center">
-                <i class="fas fa-paper-plane"></i> Submit Review
-            </button>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        Your Review
+                        <span style="color:var(--gray-400);
+                                     font-weight:400">(optional)</span>
+                    </label>
+                    <textarea name="comment" class="form-control"
+                              rows="3"
+                              placeholder="Share your experience...">
+                    </textarea>
+                </div>
+
+                <button type="submit"
+                        class="btn btn-primary w-full justify-center">
+                    <i class="fas fa-paper-plane"></i> Submit Review
+                </button>
+            </form>
         </div>
     </div>
 </div>
 
 {% endblock %}
 
+
 {% block page_js %}
 <script>
+// ── Tab Switching ──
 function switchApptTab(btn, tab) {
-    document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.appt-tab-content').forEach(c => c.style.display = 'none');
+    document.querySelectorAll('.page-tab')
+            .forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.appt-tab-content')
+            .forEach(c => c.style.display = 'none');
     btn.classList.add('active');
     document.getElementById('tab-' + tab).style.display = 'block';
 }
 
-function openApptDetail() {
+// ── Appointment Detail Modal ──
+function openApptDetail(doc, spec, date, time, symptoms, status, apptId) {
+    document.getElementById('modalDocName').textContent  = doc;
+    document.getElementById('modalDocSpec').textContent  = spec;
+    document.getElementById('modalApptDate').textContent = date;
+    document.getElementById('modalApptTime').textContent = time;
+    document.getElementById('modalSymptoms').textContent = symptoms;
+    document.getElementById('modalApptId').textContent   = apptId;
+
+    const statusEl = document.getElementById('modalStatus');
+    const cls = {
+        'Confirmed': 'badge-success',
+        'Pending':   'badge-warning',
+        'Completed': 'badge-gray',
+        'Cancelled': 'badge-danger',
+    }[status] || 'badge-gray';
+    statusEl.className   = 'badge ' + cls;
+    statusEl.textContent = status;
+
     document.getElementById('apptDetailModal').classList.add('open');
     document.body.style.overflow = 'hidden';
 }
 
-function openReviewModal() {
+// ── Review Modal ──
+function openReviewModal(apptId) {
+    document.getElementById('reviewApptId').value = apptId;
     document.getElementById('reviewModal').classList.add('open');
     document.body.style.overflow = 'hidden';
 }
 
-// Star rating
+// ── Star Rating ──
+let selectedRating = 0;
 document.querySelectorAll('.star-btn').forEach(star => {
-    star.addEventListener('click', function() {
-        const val = this.dataset.val;
-        document.querySelectorAll('.star-btn').forEach((s, i) => {
-            s.style.color = i < val ? '#F59E0B' : 'var(--gray-300)';
-        });
+    star.addEventListener('click', function () {
+        selectedRating = parseInt(this.dataset.val);
+        document.getElementById('ratingInput').value = selectedRating;
+        updateStars(selectedRating);
     });
-    star.addEventListener('mouseenter', function() {
-        const val = this.dataset.val;
-        document.querySelectorAll('.star-btn').forEach((s, i) => {
-            s.style.color = i < val ? '#F59E0B' : 'var(--gray-300)';
-        });
+    star.addEventListener('mouseenter', function () {
+        updateStars(parseInt(this.dataset.val));
+    });
+    star.addEventListener('mouseleave', function () {
+        updateStars(selectedRating);
     });
 });
+
+function updateStars(val) {
+    document.querySelectorAll('.star-btn').forEach((s, i) => {
+        s.style.color = i < val ? '#F59E0B' : 'var(--gray-300)';
+    });
+}
 </script>
 {% endblock %}

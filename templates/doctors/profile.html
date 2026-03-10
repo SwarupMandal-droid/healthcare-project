@@ -1,22 +1,28 @@
 {% extends 'doctors/base_doctor.html' %}
-{% load static custom_filters %}
+{% load static %}
 
 {% block title %}My Profile — Doctor{% endblock %}
 {% block breadcrumb %}My Profile{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}?v=1">
-<link rel="stylesheet" href="{% static 'css/doctor_dashboard.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/patient_dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/doctor_dashboard.css' %}">
 {% endblock %}
 
 {% block dash_content %}
 
-<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+<div style="display:flex;align-items:center;
+            justify-content:space-between;margin-bottom:24px">
     <h2 style="font-size:1.4rem">My Profile</h2>
-    <button class="btn btn-primary" id="saveBtn" onclick="saveProfile()">
+    <button class="btn btn-primary" id="saveBtn"
+            form="profileForm" type="submit">
         <i class="fas fa-save"></i> Save Changes
     </button>
 </div>
+
+<form method="POST" enctype="multipart/form-data"
+      id="profileForm" action="{% url 'doctors:profile' %}">
+{% csrf_token %}
 
 <div class="profile-grid">
 
@@ -24,72 +30,81 @@
     <div>
         <div class="profile-sidebar-card">
             <div class="profile-avatar-wrap">
-                <img src="https://i.pravatar.cc/100?img=12"
+                {% if doctor.user.profile_photo %}
+                <img src="{{ doctor.user.profile_photo.url }}"
                      alt="Doctor" id="profileImg">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ doctor.user.get_full_name }}&background=059669&color=fff&size=100"
+                     alt="Doctor" id="profileImg">
+                {% endif %}
                 <label class="profile-avatar-edit" for="avatarInput">
                     <i class="fas fa-camera"></i>
                 </label>
-                <input type="file" id="avatarInput" accept="image/*"
-                       style="display:none" onchange="previewAvatar(event)">
-            </div>
-            <div class="profile-name">Dr. Priya Sharma</div>
-            <div class="profile-role">
-                <i class="fas fa-circle" style="font-size:0.5rem"></i> Cardiologist
+                <input type="file" id="avatarInput"
+                       name="profile_photo"
+                       accept="image/*" style="display:none"
+                       onchange="previewAvatar(event)">
             </div>
 
-            <!-- Verified Badge -->
+            <div class="profile-name">
+                Dr. {{ doctor.user.get_full_name }}
+            </div>
+            <div class="profile-role">
+                <i class="fas fa-circle" style="font-size:0.5rem"></i>
+                {{ doctor.specialization.name|default:"Doctor" }}
+            </div>
+
+            {% if doctor.is_verified %}
             <div class="verified-badge">
                 <i class="fas fa-check-circle"></i> Verified Doctor
             </div>
+            {% else %}
+            <div style="background:#FEF3C7;color:#92400E;padding:6px 14px;
+                        border-radius:100px;font-size:0.8rem;
+                        font-weight:700;margin-bottom:16px;
+                        display:inline-flex;align-items:center;gap:6px">
+                <i class="fas fa-clock"></i> Pending Verification
+            </div>
+            {% endif %}
 
             <div class="profile-stats">
                 <div style="text-align:center">
-                    <div class="profile-stat-val">142</div>
+                    <div class="profile-stat-val">
+                        {{ doctor.appointments.count }}
+                    </div>
                     <div class="profile-stat-lbl">Patients</div>
                 </div>
                 <div style="text-align:center">
-                    <div class="profile-stat-val">4.9</div>
+                    <div class="profile-stat-val">
+                        {{ doctor.rating|default:"0.0" }}
+                    </div>
                     <div class="profile-stat-lbl">Rating</div>
                 </div>
                 <div style="text-align:center">
-                    <div class="profile-stat-val">12</div>
+                    <div class="profile-stat-val">
+                        {{ doctor.experience_years }}
+                    </div>
                     <div class="profile-stat-lbl">Yrs Exp</div>
                 </div>
             </div>
-
-            <!-- Rating stars -->
-            <div style="display:flex;gap:4px;justify-content:center;margin-bottom:16px">
-                {% for i in "12345" %}
-                <i class="fas fa-star" style="color:#F59E0B;font-size:1rem"></i>
-                {% endfor %}
-            </div>
-            <p style="font-size:0.78rem;color:var(--gray-500)">
-                Based on 256 patient reviews
-            </p>
         </div>
 
-        <!-- Account Settings -->
+        <!-- Settings -->
         <div class="panel-card" style="margin-top:20px">
             <div class="panel-header">
                 <h3><i class="fas fa-cog"
-                       style="color:var(--gray-500);margin-right:8px"></i>Settings</h3>
+                       style="color:var(--gray-500);margin-right:8px"></i>
+                    Settings</h3>
             </div>
-            <div class="panel-body" style="display:flex;flex-direction:column;gap:10px">
-                <button class="btn btn-outline w-full"
+            <div class="panel-body"
+                 style="display:flex;flex-direction:column;gap:10px">
+                <button type="button"
+                        class="btn btn-outline w-full"
                         style="justify-content:flex-start;gap:12px"
                         onclick="openModal('changePwModal')">
-                    <i class="fas fa-lock" style="color:var(--primary)"></i>
+                    <i class="fas fa-lock"
+                       style="color:var(--primary)"></i>
                     Change Password
-                </button>
-                <button class="btn btn-outline w-full"
-                        style="justify-content:flex-start;gap:12px">
-                    <i class="fas fa-bell" style="color:var(--accent)"></i>
-                    Notifications
-                </button>
-                <button class="btn btn-outline w-full"
-                        style="justify-content:flex-start;gap:12px">
-                    <i class="fas fa-calendar-alt" style="color:var(--secondary)"></i>
-                    Availability Settings
                 </button>
             </div>
         </div>
@@ -98,7 +113,7 @@
     <!-- Form -->
     <div style="display:flex;flex-direction:column;gap:20px">
 
-        <!-- Personal Info -->
+        <!-- Professional Info -->
         <div class="panel-card">
             <div class="panel-header">
                 <h3><i class="fas fa-user-md"
@@ -106,93 +121,128 @@
                     Professional Information</h3>
             </div>
             <div class="panel-body">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div style="display:grid;
+                            grid-template-columns:1fr 1fr;gap:16px">
                     <div class="form-group">
                         <label class="form-label">First Name</label>
-                        <input type="text" class="form-control" value="Priya">
+                        <input type="text" name="first_name"
+                               class="form-control"
+                               value="{{ doctor.user.first_name }}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Last Name</label>
-                        <input type="text" class="form-control" value="Sharma">
+                        <input type="text" name="last_name"
+                               class="form-control"
+                               value="{{ doctor.user.last_name }}">
                     </div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div style="display:grid;
+                            grid-template-columns:1fr 1fr;gap:16px">
                     <div class="form-group">
                         <label class="form-label">Email</label>
-                        <input type="email" class="form-control"
-                               value="priya.sharma@lifelinecare.in">
+                        <input type="email" name="email"
+                               class="form-control"
+                               value="{{ doctor.user.email }}">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Phone</label>
-                        <input type="tel" class="form-control"
-                               value="+91 91234 56789">
+                        <input type="tel" name="phone"
+                               class="form-control"
+                               value="{{ doctor.user.phone }}">
                     </div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div style="display:grid;
+                            grid-template-columns:1fr 1fr;gap:16px">
                     <div class="form-group">
                         <label class="form-label">Specialization</label>
-                        <select class="form-control">
-                            <option selected>Cardiology</option>
-                            <option>Neurology</option>
-                            <option>Orthopedics</option>
-                            <option>Pediatrics</option>
-                            <option>Dermatology</option>
+                        <select name="specialization" class="form-control">
+                            {% for spec in specializations %}
+                            <option value="{{ spec.name }}"
+                                {% if spec == doctor.specialization %}
+                                selected{% endif %}>
+                                {{ spec.name }}
+                            </option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Experience (years)</label>
-                        <input type="number" class="form-control" value="12">
+                        <label class="form-label">
+                            Experience (years)
+                        </label>
+                        <input type="number" name="experience_years"
+                               class="form-control"
+                               value="{{ doctor.experience_years }}">
                     </div>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div style="display:grid;
+                            grid-template-columns:1fr 1fr;gap:16px">
                     <div class="form-group">
-                        <label class="form-label">License Number</label>
-                        <input type="text" class="form-control"
-                               value="MCI-12345678">
+                        <label class="form-label">Clinic Name</label>
+                        <input type="text" name="clinic_name"
+                               class="form-control"
+                               value="{{ doctor.clinic_name }}">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Consultation Fee (₹)</label>
-                        <input type="number" class="form-control" value="500">
+                        <label class="form-label">
+                            Consultation Fee (₹)
+                        </label>
+                        <input type="number" name="consultation_fee"
+                               class="form-control"
+                               value="{{ doctor.consultation_fee }}">
                     </div>
                 </div>
                 <div class="form-group" style="margin-bottom:0">
                     <label class="form-label">Professional Bio</label>
-                    <textarea class="form-control" rows="3">
-Dr. Priya Sharma is a board-certified cardiologist with over 12 years of experience in treating heart conditions. She specializes in preventive cardiology, heart failure management, and cardiac imaging.</textarea>
+                    <textarea name="bio" class="form-control"
+                              rows="3">{{ doctor.bio }}</textarea>
                 </div>
             </div>
         </div>
 
         <!-- Availability -->
-        <div class="panel-card">
-            <div class="panel-header">
-                <h3><i class="fas fa-clock"
-                       style="color:var(--secondary);margin-right:8px"></i>
-                    Availability Hours</h3>
+<div class="panel-card">
+    <div class="panel-header">
+        <h3><i class="fas fa-clock"
+               style="color:var(--secondary);margin-right:8px"></i>
+            Availability Hours</h3>
+    </div>
+    <div class="panel-body">
+        <div class="availability-grid">
+
+            {% for day_name in days %}
+            <div class="avail-row">
+                <label style="min-width:120px;display:flex;
+                               align-items:center;gap:8px;cursor:pointer">
+                    <input type="checkbox"
+                           name="day_{{ forloop.counter0 }}"
+                           id="day_{{ forloop.counter0 }}"
+                           {% if forloop.counter0 < 5 %}checked{% endif %}
+                           onchange="toggleDay({{ forloop.counter0 }})">
+                    <span style="font-weight:600;font-size:0.88rem">
+                        {{ day_name }}
+                    </span>
+                </label>
+                <input type="time"
+                       name="start_{{ forloop.counter0 }}"
+                       id="start_{{ forloop.counter0 }}"
+                       class="form-control"
+                       style="width:130px"
+                       value="09:00">
+                <span style="color:var(--gray-400);font-weight:600">
+                    to
+                </span>
+                <input type="time"
+                       name="end_{{ forloop.counter0 }}"
+                       id="end_{{ forloop.counter0 }}"
+                       class="form-control"
+                       style="width:130px"
+                       value="{% if forloop.counter0 == 5 %}14:00{% else %}18:00{% endif %}">
             </div>
-            <div class="panel-body">
-                <div class="availability-grid">
-                    {% for day in "Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday"|split:"," %}
-                    <div class="avail-row">
-                        <label class="checkbox-label" style="min-width:110px">
-                            <input type="checkbox"
-                                   {% if forloop.counter < 7 %}checked{% endif %}>
-                            <span>{{ day }}</span>
-                        </label>
-                        <input type="time" class="form-control"
-                               value="09:00"
-                               style="width:120px"
-                               {% if forloop.counter == 7 %}disabled{% endif %}>
-                        <span style="color:var(--gray-400)">to</span>
-                        <input type="time" class="form-control"
-                               value="{% if forloop.counter == 6 %}14:00{% else %}18:00{% endif %}"
-                               style="width:120px"
-                               {% if forloop.counter == 7 %}disabled{% endif %}>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
+            {% endfor %}
+
         </div>
+    </div>
+</div>
 
         <!-- Reviews -->
         <div class="panel-card">
@@ -202,40 +252,42 @@ Dr. Priya Sharma is a board-certified cardiologist with over 12 years of experie
                     Patient Reviews</h3>
             </div>
             <div class="panel-body" style="padding:8px 22px 16px">
-                {% for i in "123" %}
+                {% for review in reviews %}
                 <div class="review-item">
                     <div class="review-header">
-                        <img src="https://i.pravatar.cc/36?img={{ forloop.counter|add:4 }}"
+                        <img src="https://ui-avatars.com/api/?name={{ review.patient.get_full_name }}&background=2563eb&color=fff&size=36"
                              alt="">
                         <div>
                             <p style="font-weight:700;font-size:0.88rem">
-                                Patient {{ forloop.counter }}
+                                {{ review.patient.get_full_name }}
                             </p>
-                            <div style="color:#F59E0B;font-size:0.75rem">
-                                ★★★★★
+                            <div style="color:#F59E0B;font-size:0.8rem">
+                                {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
                             </div>
                         </div>
                         <span style="margin-left:auto;font-size:0.75rem;
                                      color:var(--gray-400)">
-                            Feb {{ forloop.counter|add:15 }}, 2025
+                            {{ review.created_at|date:"M d, Y" }}
                         </span>
                     </div>
                     <p class="review-text">
-                        {% if forloop.counter == 1 %}
-                        Excellent doctor! Very thorough and explained everything clearly.
-                        {% elif forloop.counter == 2 %}
-                        Dr. Sharma is very professional and caring. Highly recommended!
-                        {% else %}
-                        Great experience. The diagnosis was spot on and treatment worked well.
-                        {% endif %}
+                        {{ review.comment|default:"No comment left." }}
                     </p>
                 </div>
+                {% empty %}
+                <p style="color:var(--gray-400);text-align:center;
+                           padding:24px">
+                    No reviews yet.
+                </p>
                 {% endfor %}
             </div>
         </div>
 
     </div>
 </div>
+</form>
 
 <!-- Change Password Modal -->
 <div class="modal-overlay" id="changePwModal">
@@ -244,7 +296,8 @@ Dr. Priya Sharma is a board-certified cardiologist with over 12 years of experie
             <h3><i class="fas fa-lock"
                    style="color:var(--primary);margin-right:8px"></i>
                 Change Password</h3>
-            <button class="modal-close" onclick="closeModal('changePwModal')">
+            <button class="modal-close"
+                    onclick="closeModal('changePwModal')">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -265,9 +318,13 @@ Dr. Priya Sharma is a board-certified cardiologist with over 12 years of experie
                        placeholder="Re-enter new password">
             </div>
             <div style="display:flex;gap:10px">
-                <button class="btn btn-outline w-full justify-center"
-                        onclick="closeModal('changePwModal')">Cancel</button>
-                <button class="btn btn-primary w-full justify-center">
+                <button type="button"
+                        class="btn btn-outline w-full justify-center"
+                        onclick="closeModal('changePwModal')">
+                    Cancel
+                </button>
+                <button type="button"
+                        class="btn btn-primary w-full justify-center">
                     <i class="fas fa-save"></i> Update
                 </button>
             </div>
@@ -290,19 +347,12 @@ function previewAvatar(event) {
     }
 }
 
-function saveProfile() {
-    const btn = document.getElementById('saveBtn');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    btn.disabled = true;
-    setTimeout(() => {
-        btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-        btn.style.background = 'var(--secondary)';
-        setTimeout(() => {
-            btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
-            btn.style.background = '';
-            btn.disabled = false;
-        }, 2000);
-    }, 1200);
+function toggleDay(i) {
+    const cb    = document.getElementById('day_' + i);
+    const start = document.getElementById('start_' + i);
+    const end   = document.getElementById('end_' + i);
+    start.disabled = !cb.checked;
+    end.disabled   = !cb.checked;
 }
 
 function openModal(id) {
@@ -310,12 +360,11 @@ function openModal(id) {
     document.body.style.overflow = 'hidden';
 }
 
-// Toggle availability inputs on checkbox change
-document.querySelectorAll('.avail-row input[type="checkbox"]').forEach(cb => {
-    cb.addEventListener('change', function() {
-        const inputs = this.closest('.avail-row').querySelectorAll('input[type="time"]');
-        inputs.forEach(inp => inp.disabled = !this.checked);
-    });
+// Init disabled state on load
+document.addEventListener('DOMContentLoaded', function() {
+    for (let i = 0; i < 7; i++) {
+        toggleDay(i);
+    }
 });
 </script>
 {% endblock %}
