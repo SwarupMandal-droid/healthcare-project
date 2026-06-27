@@ -25,3 +25,15 @@ class User(AbstractUser):
 
     def is_admin_user(self):
         return self.role == 'admin'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.profile_photo:
+            try:
+                from PIL import Image
+                img = Image.open(self.profile_photo.path)
+                if img.height > 600 or img.width > 600:
+                    img.thumbnail((600, 600))
+                    img.save(self.profile_photo.path)
+            except Exception:
+                pass

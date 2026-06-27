@@ -2,14 +2,16 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.db import transaction
+from django.views.decorators.http import require_http_methods
 from doctors.models import DoctorProfile, TimeSlot
 from appointments.models import Appointment
 from payments.models import Payment
 import datetime
 import json
 import razorpay
+from secrets import token_urlsafe
 from notifications.utils import (
     notify_appt_confirmed,
     notify_doctor_new_booking,
@@ -117,7 +119,12 @@ def book_appointment(request, doctor_id):
 
 
 # ── AJAX: Get slots for selected date ─────────────────────────────────────────
+@login_required  # ✅ SECURITY: Require authentication
 def get_slots(request):
+    # ✅ SECURITY: Only patients can request slots
+    if request.user.role != 'patient':
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
     doctor_id = request.GET.get('doctor_id')
     date_str  = request.GET.get('date')
 
@@ -179,10 +186,13 @@ def confirm_appointment(request):
                 'currency': 'INR',
                 'payment_capture': 1,
                 'notes': {
-                    'doctor':  doctor.user.get_full_name(),
-                    'patient': request.user.get_full_name(),
-                    'date':    date_str,
-                    'time':    time_str,
+                    'doctor_id':  str(doctor.id),
+                    'patient_id': str(request.user.id),
+                    'date':       date_str,
+                    'time':       time_str,
+                    'symptoms':   symptoms[:100],  # Truncate for Razorpay limits
+                    'notes':      notes[:100],
+                    'fee':        str(doctor.consultation_fee),
                 }
             })
 
@@ -259,7 +269,16 @@ def process_payment(request):
         except razorpay.errors.SignatureVerificationError:
             payment_verified = False
 
-    # Double check slot
+    # ✅ IDEMPOTENCY: Check if appointment for this order already exists
+    # If the webhook already processed it, we just return success
+    from payments.models import Payment as PayRec
+    existing_payment = PayRec.objects.filter(razorpay_order_id=razorpay_order_id, status='success').first()
+    
+    if existing_payment:
+        del request.session['booking']
+        return redirect('appointments:success', appt_id=existing_payment.appointment.appointment_id)
+
+    # Double check slot (only if it doesn't exist yet)
     if Appointment.objects.filter(
         doctor=doctor,
         appointment_date=appt_date,
@@ -267,33 +286,34 @@ def process_payment(request):
         status__in=['pending', 'confirmed']
     ).exists():
         messages.error(request, 'Slot no longer available.')
-        del request.session['booking']
+        if 'booking' in request.session: del request.session['booking']
         return redirect('appointments:book', doctor_id=doctor.id)
 
-    # Create Appointment
-    appt = Appointment.objects.create(
-        patient          = request.user,
-        doctor           = doctor,
-        appointment_date = appt_date,
-        start_time       = start_time,
-        end_time         = end_time,
-        symptoms         = booking.get('symptoms', ''),
-        notes            = booking.get('notes', ''),
-        status           = 'confirmed' if payment_verified else 'pending',
-    )
+    with transaction.atomic():
+        # Create Appointment
+        appt = Appointment.objects.create(
+            patient          = request.user,
+            doctor           = doctor,
+            appointment_date = appt_date,
+            start_time       = start_time,
+            end_time         = end_time,
+            symptoms         = booking.get('symptoms', ''),
+            notes            = booking.get('notes', ''),
+            status           = 'confirmed' if payment_verified else 'pending',
+        )
 
-    # Create Payment record
-    from django.utils import timezone
-    payment_obj = Payment.objects.create(
-        appointment         = appt,
-        patient             = request.user,
-        amount              = booking['fee'],
-        method              = pay_method,
-        status              = 'success' if payment_verified else 'pending',
-        razorpay_order_id   = razorpay_order_id,
-        razorpay_payment_id = razorpay_payment_id,
-        paid_at             = timezone.now() if payment_verified else None,
-    )
+        # Create Payment record
+        from django.utils import timezone
+        payment_obj = Payment.objects.create(
+            appointment         = appt,
+            patient             = request.user,
+            amount              = booking['fee'],
+            method              = pay_method,
+            status              = 'success' if payment_verified else 'pending',
+            razorpay_order_id   = razorpay_order_id,
+            razorpay_payment_id = razorpay_payment_id,
+            paid_at             = timezone.now() if payment_verified else None,
+        )
 
     del request.session['booking']
 

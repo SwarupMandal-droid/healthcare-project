@@ -21,8 +21,9 @@ INTENTS = {
     ],
 
     'cancel_appointment': [
-        r'\b(cancel|cancellation|remove|delete).{0,20}\b(appointment|booking|slot)\b',
-        r'\b(don\'t want|do not want).{0,20}\b(appointment)\b',
+        r'\b(cancel|cancellation|remove|delete|stop).{0,20}\b(appointment|booking|slot|session)\b',
+        r'\b(don\'t want|do not want).{0,20}\b(appointment|visit)\b',
+        r'\bcancel\b',
     ],
 
     'check_availability': [
@@ -32,9 +33,9 @@ INTENTS = {
     ],
 
     'symptom_check': [
-        r'\b(symptom|feeling|suffering|pain|fever|cough|headache|vomit|nausea|dizzy|breathless|chest pain|back pain|stomach)\b',
-        r'\b(i have|i am having|i feel|i am feeling).{0,30}\b(pain|ache|fever|cough|cold|weakness)\b',
-        r'\b(what doctor|which doctor|which specialist).{0,20}\b(should i|for)\b',
+        r'\b(symptom|symptoms|feeling|suffering|pain|fever|cough|headache|vomit|nausea|dizzy|breathless|chest pain|back pain|stomach|cold|flu|infection)\b',
+        r'\b(i have|i am having|i feel|i am feeling).{0,30}\b(pain|ache|fever|cough|cold|weakness|dizzy|nausea)\b',
+        r'\b(what doctor|which doctor|which specialist|refer me to).{0,20}\b(should i|for)\b',
     ],
 
     'view_appointments': [
@@ -44,8 +45,13 @@ INTENTS = {
     ],
 
     'view_records': [
-        r'\b(prescription|lab report|medical record|report|document|diet chart)\b',
+        r'\b(prescription|lab report|medical record|report|document|history|test report)\b',
         r'\b(show|view|get|access).{0,20}\b(record|report|prescription|document)\b',
+    ],
+
+    'diet_chart': [
+        r'\b(diet|dietary|nutrition|meal plan|food chart|what to eat)\b',
+        r'\b(show|get|view|my).{0,20}\b(diet|meal plan|food chart)\b',
     ],
 
     'doctor_info': [

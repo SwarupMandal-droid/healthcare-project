@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Q
+from django.utils import timezone
 
 
 @login_required
@@ -150,11 +152,37 @@ def upload_documents(request):
         if not patient_id or not file:
             messages.error(request, 'Patient and file are required.')
             return redirect('doctors:upload')
-
+        
+        # ✅ SECURITY: Validate file before processing
+        MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+        if file.size > MAX_FILE_SIZE:
+            messages.error(request, f'File too large (max {MAX_FILE_SIZE//1024//1024}MB)')
+            return redirect('doctors:upload')
+        
+        # ✅ SECURITY: Validate file extension
+        ALLOWED_EXTS = {'pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx'}
+        ext = file.name.split('.')[-1].lower() if '.' in file.name else ''
+        if ext not in ALLOWED_EXTS:
+            messages.error(request, f'File type .{ext} not allowed. Allowed: {" ".join(sorted(ALLOWED_EXTS))}')
+            return redirect('doctors:upload')
+        
         try:
             patient = User.objects.get(id=patient_id, role='patient')
         except User.DoesNotExist:
             messages.error(request, 'Patient not found.')
+            return redirect('doctors:upload')
+        
+        doctor = request.user.doctor_profile
+        
+        # ✅ SECURITY: Verify this doctor has seen this patient before
+        from appointments.models import Appointment
+        has_appointment = Appointment.objects.filter(
+            doctor=doctor,
+            patient=patient
+        ).exists()
+        
+        if not has_appointment:
+            messages.error(request, 'You can only upload documents for your existing patients.')
             return redirect('doctors:upload')
 
         doc = PatientDocument.objects.create(

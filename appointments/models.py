@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import User
 from doctors.models import DoctorProfile, TimeSlot
+from secrets import token_urlsafe
 
 class Appointment(models.Model):
     STATUS_CHOICES = [
@@ -42,12 +43,9 @@ class Appointment(models.Model):
                 f"with {self.doctor}")
 
     def save(self, *args, **kwargs):
-        # Auto-generate appointment ID
+        # ✅ SECURITY: Use cryptographically secure random ID generation
         if not self.appointment_id:
-            import random, string
-            chars = string.ascii_uppercase + string.digits
-            self.appointment_id = 'LC-' + ''.join(
-                random.choices(chars, k=8))
+            self.appointment_id = 'LC-' + token_urlsafe(10)
         super().save(*args, **kwargs)
 
 

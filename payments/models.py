@@ -1,6 +1,7 @@
 from django.db import models
 from accounts.models import User
 from appointments.models import Appointment
+from secrets import token_urlsafe
 
 class Payment(models.Model):
     METHOD_CHOICES = [
@@ -42,9 +43,7 @@ class Payment(models.Model):
                 f"₹{self.amount} — {self.status}")
 
     def save(self, *args, **kwargs):
+        # ✅ SECURITY: Use cryptographically secure random ID generation
         if not self.transaction_id:
-            import random, string
-            chars = string.ascii_uppercase + string.digits
-            self.transaction_id = 'TXN-' + ''.join(
-                random.choices(chars, k=10))
+            self.transaction_id = 'TXN-' + token_urlsafe(12)
         super().save(*args, **kwargs)

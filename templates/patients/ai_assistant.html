@@ -223,15 +223,18 @@
 
 
 {% block page_js %}
-<!-- Marked.js for markdown rendering -->
+<!-- Marked.js for markdown rendering and DOMPurify for sanitization -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 
 <script>
 const CSRF_TOKEN = '{{ csrf_token }}';
 
 // ── Render existing markdown messages on load ──
 document.querySelectorAll('.markdown-body[data-raw]').forEach(el => {
-    el.innerHTML = marked.parse(el.dataset.raw);
+    const rawMarkdown = el.dataset.raw;
+    const cleanHtml = DOMPurify.sanitize(marked.parse(rawMarkdown));
+    el.innerHTML = cleanHtml;
 });
 
 // ── Auto-scroll to bottom ──
@@ -328,18 +331,30 @@ function appendUserMessage(text) {
     const now       = new Date().toLocaleTimeString(
                           'en-US', { hour: 'numeric', minute: '2-digit' });
 
-    const escaped = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
     const row       = document.createElement('div');
     row.className   = 'ai-message-row user-row';
-    row.innerHTML   = `
-        <div class="msg-bubble user-bubble">
-            <div class="msg-content">${escaped}</div>
-            <div class="msg-time">${now}</div>
-        </div>
-        <div class="msg-avatar user-msg-avatar">
-            {{ request.user.first_name|first|upper }}
-        </div>`;
+    
+    // Create inner structure
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble user-bubble';
+    
+    const content = document.createElement('div');
+    content.className = 'msg-content';
+    content.textContent = text; // ✅ SECURITY: Automatically escapes HTML
+    
+    const time = document.createElement('div');
+    time.className = 'msg-time';
+    time.textContent = now;
+    
+    bubble.appendChild(content);
+    bubble.appendChild(time);
+    
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar user-msg-avatar';
+    avatar.textContent = "{{ request.user.first_name|first|upper }}";
+
+    row.appendChild(bubble);
+    row.appendChild(avatar);
 
     container.appendChild(row);
     scrollToBottom();
@@ -353,47 +368,57 @@ function appendBotMessage(data) {
                           'en-US', { hour: 'numeric', minute: '2-digit' });
 
     // ── Action Buttons ──
-    let buttonsHtml = '';
+    const buttonsContainer = document.createElement('div');
+    buttonsContainer.className = 'bot-action-buttons';
     if (data.buttons && data.buttons.length) {
-        buttonsHtml = `
-            <div class="bot-action-buttons">
-                ${data.buttons.map(btn => `
-                    <a href="${btn.url}"
-                       class="bot-action-btn">
-                        ${btn.label}
-                    </a>
-                `).join('')}
-            </div>`;
+        data.buttons.forEach(btn => {
+            const a = document.createElement('a');
+            a.href = btn.url;
+            a.className = 'bot-action-btn';
+            a.textContent = btn.label;
+            buttonsContainer.appendChild(a);
+        });
     }
 
     // ── Quick Reply Chips ──
-    let quickRepliesHtml = '';
+    const qrContainer = document.createElement('div');
+    qrContainer.className = 'quick-reply-chips';
     if (data.quick_replies && data.quick_replies.length) {
-        quickRepliesHtml = `
-            <div class="quick-reply-chips">
-                ${data.quick_replies.map(qr => `
-                    <button class="quick-reply-chip"
-                            onclick="sendQuick('${qr.replace(/'/g, "\\'")}')">
-                        ${qr}
-                    </button>
-                `).join('')}
-            </div>`;
+        data.quick_replies.forEach(qr => {
+            const btn = document.createElement('button');
+            btn.className = 'quick-reply-chip';
+            btn.textContent = qr;
+            btn.onclick = () => sendQuick(qr);
+            qrContainer.appendChild(btn);
+        });
     }
 
     const row     = document.createElement('div');
     row.className = 'ai-message-row ai-row';
-    row.innerHTML = `
-        <div class="msg-avatar ai-msg-avatar">
-            <i class="fas fa-robot"></i>
-        </div>
-        <div class="msg-bubble ai-bubble">
-            <div class="msg-content markdown-body">
-                ${marked.parse(data.message || '')}
-            </div>
-            ${buttonsHtml}
-            ${quickRepliesHtml}
-            <div class="msg-time">${now}</div>
-        </div>`;
+    
+    const avatar = document.createElement('div');
+    avatar.className = 'msg-avatar ai-msg-avatar';
+    avatar.innerHTML = '<i class="fas fa-robot"></i>';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble ai-bubble';
+    
+    const content = document.createElement('div');
+    content.className = 'msg-content markdown-body';
+    // ✅ SECURITY: Sanitize AI-generated markdown
+    content.innerHTML = DOMPurify.sanitize(marked.parse(data.message || ''));
+
+    const time = document.createElement('div');
+    time.className = 'msg-time';
+    time.textContent = now;
+
+    bubble.appendChild(content);
+    if (data.buttons && data.buttons.length) bubble.appendChild(buttonsContainer);
+    if (data.quick_replies && data.quick_replies.length) bubble.appendChild(qrContainer);
+    bubble.appendChild(time);
+
+    row.appendChild(avatar);
+    row.appendChild(bubble);
 
     container.appendChild(row);
     scrollToBottom();

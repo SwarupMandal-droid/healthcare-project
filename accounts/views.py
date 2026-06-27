@@ -2,6 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.conf import settings
 from .models import User
 from patients.models import PatientProfile
 from doctors.models import DoctorProfile, Specialization
@@ -18,6 +21,7 @@ def auth_page(request):
 
 
 # ─── Login ────────────────────────────────────────────────────────────────────
+# ✅ SECURITY: Rate limiting is handled by django-axes middleware
 def login_view(request):
     if request.method != 'POST':
         return redirect('accounts:auth')
@@ -31,21 +35,20 @@ def login_view(request):
     try:
         user_obj = User.objects.get(email=email)
     except User.DoesNotExist:
-        messages.error(request, 'No account found with this email address.')
+        # ✅ SECURITY: Generic error message (no email enumeration)
+        messages.error(request, 'Invalid email or password.')
         return redirect(f"{reverse('accounts:auth')}?next={next_url}" if next_url else 'accounts:auth')
 
     # Check role matches
     if user_obj.role != role:
-        messages.error(
-            request,
-            f'This account is registered as a {user_obj.role}, not a {role}.'
-        )
+        # ✅ SECURITY: Still use generic message
+        messages.error(request, 'Invalid email or password.')
         return redirect(f"{reverse('accounts:auth')}?next={next_url}" if next_url else 'accounts:auth')
 
     # Authenticate
     user = authenticate(request, username=user_obj.username, password=password)
     if user is None:
-        messages.error(request, 'Incorrect password. Please try again.')
+        messages.error(request, 'Invalid email or password.')
         return redirect(f"{reverse('accounts:auth')}?next={next_url}" if next_url else 'accounts:auth')
 
     if not user.is_active:
@@ -58,6 +61,7 @@ def login_view(request):
 
 
 # ─── Signup ───────────────────────────────────────────────────────────────────
+# ✅ SECURITY: Rate limiting is handled by django-axes middleware
 def signup_view(request):
     if request.method != 'POST':
         return redirect('accounts:auth')
@@ -149,7 +153,7 @@ def signup_view(request):
         notify_admin_new_doctor(doc_profile)
 
     # ── Log in immediately ──
-    login(request, user)
+    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
     messages.success(
         request,
         f'Welcome to Lifeline Care, {first_name}! Your account has been created.'
@@ -168,12 +172,12 @@ def logout_view(request):
 
 
 # ─── Helper: Redirect by role ─────────────────────────────────────────────────
-from django.urls import reverse
-from django.utils.http import url_has_allowed_host_and_scheme
-
 def redirect_by_role(user, fallback_url=None):
-    # If a safe next_url is provided, use it
-    if fallback_url and url_has_allowed_host_and_scheme(fallback_url, allowed_hosts={None}):
+    # ✅ SECURITY: Validate next_url against allowed hosts
+    if fallback_url and url_has_allowed_host_and_scheme(
+        fallback_url, 
+        allowed_hosts=set(settings.ALLOWED_HOSTS)
+    ):
         return redirect(fallback_url)
 
     if user.role == 'patient':

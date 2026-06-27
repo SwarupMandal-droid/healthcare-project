@@ -150,6 +150,9 @@ class ChatStateMachine:
         elif intent == 'payment':
             return self._show_payments()
 
+        elif intent == 'diet_chart':
+            return self._show_diet_charts()
+
         elif intent == 'clinic_info':
             return self._show_clinic_info()
 
@@ -780,16 +783,18 @@ class ChatStateMachine:
         self.session.set_state('symptom_check')
 
         return BotResponse(
-            "I'll help identify the right specialist for you. "
-            "Please describe your symptoms in more detail.\n\n"
-            "For example: *headache, fever, chest pain, skin rash...*",
+            "I'm here to help you find the right care. 🩺\n\n"
+            "Please describe your symptoms in more detail so I can match you "
+            "with the correct specialist. For example: *'I have a persistent "
+            "headache and dizziness'* or *'I have a rash on my arm'*.",
             quick_replies=[
-                'Headache & Dizziness',
-                'Chest Pain',
-                'Skin Problem',
-                'Fever & Cold',
-                'Back / Joint Pain',
-                'Mental Health',
+                '🤕 Headache / Dizziness',
+                '🫀 Chest Pain / Palpitation',
+                '🧴 Skin Issues / Rash',
+                '🤒 Fever / Cold / Flu',
+                '🦴 Bone / Joint Pain',
+                '🧠 Mental Health / Stress',
+                '🤰 Pregnancy / Gynecology'
             ]
         )
 
@@ -850,7 +855,36 @@ class ChatStateMachine:
             buttons=[{
                 'label': '📁 View All Documents',
                 'url':   '/patients/documents/'
-            }]
+            }],
+            quick_replies=['📋 Diet Charts', '🏠 Menu']
+        )
+
+    def _show_diet_charts(self) -> BotResponse:
+        from .actions import get_diet_charts
+        charts = get_diet_charts(self.patient)
+
+        if not charts:
+            return BotResponse(
+                "I couldn't find any specific diet charts in your records. 🥗\n\n"
+                "Diet plans are usually provided by your specialist after an "
+                "appointment based on your health condition.",
+                quick_replies=['📅 Book Appointment', '🏠 Menu']
+            )
+
+        chart_text = '\n'.join([
+            f"• **{c['title']}**\n"
+            f"  Shared by {c['doctor']} on {c['date']}"
+            for c in charts
+        ])
+
+        return BotResponse(
+            f"Here are your **Diet Charts** 🥗:\n\n{chart_text}\n\n"
+            f"You can view the full documents for detailed meal plans.",
+            buttons=[{
+                'label': '📋 Open My Documents',
+                'url':   '/patients/documents/'
+            }],
+            quick_replies=['🏠 Menu']
         )
 
     def _show_doctors(self, message: str) -> BotResponse:
@@ -860,21 +894,26 @@ class ChatStateMachine:
             doctors = get_doctors_by_specialization(spec)
             if doctors:
                 doc_text = '\n'.join([
-                    f"• **{d['name']}** — "
-                    f"{d['experience']} yrs | "
-                    f"⭐ {d['rating']} | ₹{d['fee']}"
-                    for d in doctors
+                    f"🩺 **{d['name']}**\n"
+                    f"   _{d['spec']}_ • {d['experience']} yrs experience\n"
+                    f"   ⭐ {d['rating']} Rating • Fee: ₹{d['fee']}"
+                    for d in doctors[:3]
                 ])
+
                 return BotResponse(
-                    f"**{spec}** doctors available:\n\n{doc_text}",
+                    f"I found these highly-rated **{spec}** specialists for you:\n\n{doc_text}\n\n"
+                    f"Would you like to book an appointment with any of them?",
                     quick_replies=[
                         f"Book with {doctors[0]['name']}",
-                        '🏠 Menu'
+                        f"Book with {doctors[1]['name']}" if len(doctors) > 1 else None,
+                        "📅 See More Doctors",
+                        "🏠 Menu"
                     ]
                 )
 
         return BotResponse(
-            "Which specialization are you looking for?",
+            "Which type of specialist are you looking for? 👨‍⚕️\n\n"
+            "I can find experts in Cardiology, Dermatology, Pediatrics, and more.",
             quick_replies=get_all_specializations()
         )
 
@@ -921,23 +960,21 @@ class ChatStateMachine:
 
     def _help_menu(self) -> BotResponse:
         return BotResponse(
-            f"Hi {self.patient.first_name}! Here's what I can do:\n\n"
-            "📅 **Book** an appointment\n"
-            "🔄 **Reschedule** an appointment\n"
-            "❌ **Cancel** an appointment\n"
-            "🤒 **Check symptoms** & get specialist advice\n"
-            "📋 **View** your appointments\n"
-            "📁 **Access** your medical documents\n"
-            "💳 **Check** payment history\n"
-            "🏥 **Clinic** information\n\n"
+            f"Hi {self.patient.first_name}! I'm here to assist you with your health needs. 💊\n\n"
+            "You can ask me to:\n"
+            "• **Book** an appointment\n"
+            "• **Reschedule** or **Cancel** a booking\n"
+            "• **Check symptoms** & get a recommendation\n"
+            "• **View** your medical documents & **Diet Charts**\n"
+            "• **Check** your payment history\n\n"
             "What would you like to do?",
             quick_replies=[
-                '📅 Book Appointment',
-                '🔄 Reschedule',
-                '❌ Cancel',
-                '🤒 Symptoms',
-                '📋 Appointments',
-                '📁 Documents',
+                'Book Appointment',
+                'Reschedule Appointment',
+                'Cancel Appointment',
+                'Check Symptoms',
+                'My Diet Charts',
+                'My Documents',
             ]
         )
 

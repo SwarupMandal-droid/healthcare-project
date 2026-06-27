@@ -72,9 +72,9 @@ class DoctorAvailability(models.Model):
         ordering        = ['day']
 
     def __str__(self):
-        return (f"{self.doctor} — "
+        return (f"{self.doctor} -- "
                 f"{self.get_day_display()} "
-                f"{self.start_time}–{self.end_time}")
+                f"{self.start_time}-{self.end_time}")
 
 
 class TimeSlot(models.Model):
@@ -93,7 +93,7 @@ class TimeSlot(models.Model):
     def __str__(self):
         return (f"{self.doctor} | "
                 f"{self.date} "
-                f"{self.start_time}–{self.end_time}")
+                f"{self.start_time}-{self.end_time}")
 
 
 class PatientDocument(models.Model):
@@ -128,7 +128,7 @@ class PatientDocument(models.Model):
         ordering = ['-uploaded_at']
 
     def __str__(self):
-        return (f"{self.get_doc_type_display()} — "
+        return (f"{self.get_doc_type_display()} -- "
                 f"{self.patient.get_full_name()}")
 
     def filename(self):
@@ -138,3 +138,17 @@ class PatientDocument(models.Model):
     def extension(self):
         import os
         return os.path.splitext(self.file.name)[1].upper().replace('.', '')
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Resize images for faster loading (exclude PDFs/Docs)
+        try:
+            ext = self.extension().lower()
+            if ext in ['jpg', 'jpeg', 'png'] and self.file:
+                from PIL import Image
+                img = Image.open(self.file.path)
+                if img.height > 1200 or img.width > 1200:
+                    img.thumbnail((1200, 1200))
+                    img.save(self.file.path)
+        except Exception:
+            pass

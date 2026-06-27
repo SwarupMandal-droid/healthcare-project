@@ -2,6 +2,7 @@ import datetime
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Sum, Q
 
 
 def home(request):
@@ -38,11 +39,10 @@ def dashboard(request):
     ).count()
 
     from payments.models import Payment
-    total_spent = sum(
-        p.amount for p in Payment.objects.filter(
-            patient=request.user, status='success'
-        )
-    )
+    total_spent_res = Payment.objects.filter(
+        patient=request.user, status='success'
+    ).aggregate(total=Sum('amount'))
+    total_spent = total_spent_res['total'] or 0
 
     hour = datetime.datetime.now().hour
     if hour < 12:
@@ -167,14 +167,13 @@ def payment_history(request):
         patient=request.user
     ).order_by('-created_at')
 
-    total_spent = sum(p.amount for p in payments.filter(status='success'))
-    this_month  = sum(
-        p.amount for p in payments.filter(
-            status='success',
-            created_at__month=datetime.date.today().month
-        )
-    )
-    refunded = sum(p.amount for p in payments.filter(status='refunded'))
+    total_spent = payments.filter(status='success').aggregate(total=Sum('amount'))['total'] or 0
+    this_month  = payments.filter(
+        status='success',
+        created_at__month=datetime.date.today().month,
+        created_at__year=datetime.date.today().year
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    refunded = payments.filter(status='refunded').aggregate(total=Sum('amount'))['total'] or 0
 
     context = {
         'payments':    payments,

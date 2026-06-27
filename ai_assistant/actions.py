@@ -284,6 +284,24 @@ def get_patient_documents(patient) -> list:
     ]
 
 
+def get_diet_charts(patient) -> list:
+    """Specifically get diet charts for the patient."""
+    docs = PatientDocument.objects.filter(
+        patient=patient,
+        doc_type='diet_chart'
+    ).order_by('-uploaded_at')[:5]
+
+    return [
+        {
+            'title':    d.title,
+            'doctor':   f"Dr. {d.doctor.user.get_full_name()}",
+            'date':     d.uploaded_at.strftime('%d %B %Y'),
+            'url':      d.file.url,
+        }
+        for d in docs
+    ]
+
+
 def get_payment_status(patient) -> list:
     """Get patient's recent payments."""
     payments = Payment.objects.filter(
