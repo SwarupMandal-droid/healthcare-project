@@ -188,20 +188,7 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 7. Create Superuser (Admin)
 
-```python
-# Run in Django shell: python manage.py shell
-from accounts.models import User
-User.objects.create_superuser(
-    username   = 'admin',
-    email      = 'admin@lifelinecare.in',
-    password   = 'Admin@1234',
-    first_name = 'Super',
-    last_name  = 'Admin',
-    role       = 'admin'
-)
-```
 
 ### 8. Collect Static Files
 
@@ -293,21 +280,8 @@ Visit `http://127.0.0.1:8000` 🎉
 
 ---
 
-## 🧪 Test Credentials
 
-### Razorpay Test Payment
-```
-Card Number : 4111 1111 1111 1111
-Expiry      : 12/28
-CVV         : 123
-OTP         : 1234
-```
 
-### Default Admin
-```
-Email    : admin@lifelinecare.in
-Password : Admin@1234
-```
 
 ---
 
