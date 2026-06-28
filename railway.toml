@@ -2,7 +2,6 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "gunicorn lifeline_care.wsgi --bind 0.0.0.0:$PORT"
-healthcheckPath = "/"
+startCommand = "python manage.py migrate && python manage.py collectstatic --noinput && gunicorn lifeline_care.wsgi --bind 0.0.0.0:$PORT"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
