@@ -51,6 +51,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'lifeline_care.urls'
+WSGI_APPLICATION = 'lifeline_care.wsgi.application'
 
 TEMPLATES = [
     {
