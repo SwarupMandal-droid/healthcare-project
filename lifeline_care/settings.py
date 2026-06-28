@@ -76,8 +76,9 @@ if os.getenv('DATABASE_URL'):
     DATABASES = {
         'default': dj_database_url.config(default=os.getenv('DATABASE_URL'), conn_max_age=600)
     }
-else:
-    # Fallback to local MySQL for development
+elif all([os.getenv('DB_NAME'), os.getenv('DB_USER'),
+          os.getenv('DB_PASSWORD'), os.getenv('DB_HOST')]):
+    # Local MySQL for development
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -88,9 +89,14 @@ else:
             'PORT': os.getenv('DB_PORT', '3306'),
         }
     }
-    if not all([DATABASES['default']['NAME'], DATABASES['default']['USER'],
-               DATABASES['default']['PASSWORD'], DATABASES['default']['HOST']]):
-        raise ValueError('Database credentials must be set in .env')
+else:
+    # Fallback SQLite — used during Railway build phase when no DB is available
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
